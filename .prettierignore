@@ -1,0 +1,11 @@
+node_modules
+dist
+.expo
+apps/mobile/android
+apps/mobile/ios
+package-lock.json
+LICENSE
+
+# The specs are KL's prose. Prettier rewrites Markdown tables, which makes
+# every spec edit a noisy diff. Leave them alone.
+docs
