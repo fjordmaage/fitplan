@@ -9,6 +9,7 @@ A personal Android training planner that reschedules itself. The owner (KL) sets
 3. `docs/03-design-system.md` — exact visual values; prototypes in `docs/design/`
 4. `docs/04-build-plan.md` — stages; build them in order
 5. `docs/05-known-gaps.md` — what is unsolved or unverified. Read before each stage.
+6. `docs/06-design-fidelity.md` — **how to make the app look like the mockups. Read before writing any UI.** Reference images are in `docs/design/png/`.
 
 ## Who you are working with
 
@@ -24,6 +25,7 @@ A personal Android training planner that reschedules itself. The owner (KL) sets
 - **Never delete user data.** Everything entered or completed is kept permanently and can be exported (see product spec, "Data and statistics").
 - **Local only.** No account, no server, no analytics. Network use only for integrations the user turns on.
 - **Not medical advice.** The app schedules and guides exercises; it never diagnoses. Exercises a doctor or physio prescribed are entered by the user as his own.
+- **The mockups are final.** Every screen must match its reference image in `docs/design/png/`. No UI kit, no platform-default styling. Compare a screenshot against the reference yourself before showing KL (see `docs/06-design-fidelity.md`).
 - **Colour is never the only signal.** Ratings always carry a word (Good, OK, Avoid).
 
 ## Stack (chosen and verified in stage 0, 6 October 2026)
