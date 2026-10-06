@@ -1,0 +1,39 @@
+{
+  "expo": {
+    "name": "fitplan",
+    "slug": "fitplan",
+    "version": "0.0.1",
+    "orientation": "portrait",
+    "scheme": "fitplan",
+    "userInterfaceStyle": "automatic",
+    "icon": "./assets/images/icon.png",
+    "android": {
+      "package": "com.fjordmaage.fitplan",
+      "adaptiveIcon": {
+        "backgroundColor": "#0F6B5C",
+        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#EBEFED",
+          "dark": {
+            "backgroundColor": "#0D1412"
+          },
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 76
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
+  }
+}
