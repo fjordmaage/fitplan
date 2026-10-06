@@ -1,4 +1,5 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, useColorScheme, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ENGINE_VERSION, sessionLoad } from '@fitplan/engine';
@@ -7,19 +8,61 @@ import {
   flexibleFill,
   layout,
   ratingWord,
+  ThemeProvider,
   type,
   useTheme,
   type RatingLevel,
+  type ThemeName,
 } from '@/theme';
+
+type Preference = 'phone' | ThemeName;
+
+const preferences: { value: Preference; label: string }[] = [
+  { value: 'phone', label: 'Same as phone' },
+  { value: 'light', label: 'Light' },
+  { value: 'dark', label: 'Dark' },
+];
 
 /**
  * Stage 0 placeholder.
  *
- * Its job is to prove, on the phone, that four things work: the bundled font,
- * the colour tokens in both themes, the shape-and-fill encoding, and the
- * engine package being importable from the app. Nothing here survives stage 2.
+ * Its job is to prove, on the phone, that five things work: the bundled font,
+ * the colour tokens in both themes, the shape-and-fill encoding, the accent
+ * being a parameter rather than a constant, and the engine package being
+ * importable from the app. Nothing here survives stage 2.
  */
 export default function Placeholder() {
+  const phone = useColorScheme();
+  const [preference, setPreference] = useState<Preference>('phone');
+  const [accentIndex, setAccentIndex] = useState(0);
+
+  const name: ThemeName =
+    preference === 'phone' ? (phone === 'dark' ? 'dark' : 'light') : preference;
+  const accent = accentPresets[name][accentIndex] ?? accentPresets[name][0];
+
+  return (
+    <ThemeProvider preference={name} accent={accent}>
+      <Body
+        preference={preference}
+        onPreference={setPreference}
+        accentIndex={accentIndex}
+        onAccentIndex={setAccentIndex}
+      />
+    </ThemeProvider>
+  );
+}
+
+function Body({
+  preference,
+  onPreference,
+  accentIndex,
+  onAccentIndex,
+}: {
+  preference: Preference;
+  onPreference: (value: Preference) => void;
+  accentIndex: number;
+  onAccentIndex: (value: number) => void;
+}) {
   const { name, colors } = useTheme();
 
   return (
@@ -35,11 +78,20 @@ export default function Placeholder() {
           font and the colours on your own phone.
         </Text>
 
-        <Card title={`Theme: ${name}`}>
-          <Text style={[type.secondary, { color: colors.mutedText }]}>
-            Following the phone setting. Switch your phone between light and dark and reopen this
-            screen; everything below should follow.
+        <Card title="Theme">
+          <Text style={[type.secondary, styles.cardIntro, { color: colors.mutedText }]}>
+            Showing {name}. Settings will offer these same three choices.
           </Text>
+          <View style={styles.choiceRow}>
+            {preferences.map((option) => (
+              <Choice
+                key={option.value}
+                label={option.label}
+                selected={preference === option.value}
+                onPress={() => onPreference(option.value)}
+              />
+            ))}
+          </View>
           <View style={styles.swatchRow}>
             <Swatch label="Ground" color={colors.ground} border={colors.hairline} />
             <Swatch label="Surface" color={colors.surface} border={colors.hairline} />
@@ -94,11 +146,7 @@ export default function Placeholder() {
           />
           <Bar
             label="Day may change"
-            style={{
-              borderWidth: 1.5,
-              borderColor: colors.accent,
-              borderStyle: 'dashed',
-            }}
+            style={{ borderWidth: 1.5, borderColor: colors.accent, borderStyle: 'dashed' }}
           />
           <Bar label="Busy" style={{ backgroundColor: colors.busyHatchGround }} />
           <Bar label="Empty slot" style={{ backgroundColor: colors.quietFill }} />
@@ -107,10 +155,34 @@ export default function Placeholder() {
           </Text>
         </Card>
 
-        <Card title="Accent presets">
+        <Card title="Accent">
+          <Text style={[type.secondary, styles.cardIntro, { color: colors.mutedText }]}>
+            Tap one. Everything accented above follows it.
+          </Text>
           <View style={styles.swatchRow}>
-            {accentPresets[name].map((preset) => (
-              <Swatch key={preset} label={preset} color={preset} border={colors.hairline} />
+            {accentPresets[name].map((preset, index) => (
+              <Pressable
+                key={preset}
+                accessibilityRole="button"
+                accessibilityLabel={`Accent ${preset}`}
+                accessibilityState={{ selected: index === accentIndex }}
+                onPress={() => onAccentIndex(index)}
+                style={styles.swatch}
+              >
+                <View
+                  style={[
+                    styles.swatchChip,
+                    {
+                      backgroundColor: preset,
+                      borderColor: index === accentIndex ? colors.ink : colors.hairline,
+                      borderWidth: index === accentIndex ? 2 : 1,
+                    },
+                  ]}
+                />
+                <Text style={[type.smallLabel, styles.swatchLabel, { color: colors.mutedText }]}>
+                  {preset}
+                </Text>
+              </Pressable>
             ))}
           </View>
         </Card>
@@ -133,6 +205,41 @@ function Card({ title, children }: { title: string; children: React.ReactNode })
       <Text style={[type.sectionHeading, styles.cardTitle, { color: colors.ink }]}>{title}</Text>
       {children}
     </View>
+  );
+}
+
+function Choice({
+  label,
+  selected,
+  onPress,
+}: {
+  label: string;
+  selected: boolean;
+  onPress: () => void;
+}) {
+  const { colors } = useTheme();
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityState={{ selected }}
+      onPress={onPress}
+      style={[
+        styles.choice,
+        {
+          borderColor: selected ? colors.ink : colors.controlBorder,
+          borderWidth: selected ? 2 : 1,
+        },
+      ]}
+    >
+      <Text
+        style={[
+          type.smallLabel,
+          { color: colors.ink, fontFamily: selected ? type.body.fontFamily : undefined },
+        ]}
+      >
+        {label}
+      </Text>
+    </Pressable>
   );
 }
 
@@ -175,6 +282,13 @@ const styles = StyleSheet.create({
   },
   cardTitle: { marginBottom: 2 },
   cardIntro: { marginBottom: 2 },
+  choiceRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
+  choice: {
+    minHeight: layout.control.minTapTarget,
+    justifyContent: 'center',
+    paddingHorizontal: 14,
+    borderRadius: layout.radius.button,
+  },
   swatchRow: { flexDirection: 'row', gap: 12, flexWrap: 'wrap' },
   swatch: { alignItems: 'center', gap: 4 },
   swatchChip: {
