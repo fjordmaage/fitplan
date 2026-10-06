@@ -1,8 +1,8 @@
 # Design system
 
-The prototypes in `docs/design/` are the reference for layout, wording and behaviour. They are HTML files written for a design canvas (`*.dc.html`): read them for structure, exact copy, sizes and colours. They are not app code and cannot be run as-is. `Main.dc.html` contains a working script (state, move, swap, undo, expand) that shows the intended interactions; its ratings and messages are toy rules, not the engine.
+The mockups are final. Reference images of every screen are in `docs/design/png/`, and standalone HTML you can open and inspect is in `docs/design/html/`. `docs/06-design-fidelity.md` says how to match them. The values below are the same design as tables.
 
-KL has seen and approved the overall look. The designer never saw them rendered, so expect small layout faults; fix by eye on a real phone.
+The `*.dc.html` files are the original prototype sources. `Main.dc.html` contains a working script (state, move, swap, undo, expand) that shows the intended interactions; its ratings and messages are toy rules, not the engine.
 
 ## Principles
 

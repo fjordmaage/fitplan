@@ -15,7 +15,7 @@ What is unsolved, unverified or only sketched. Each has either a proposed soluti
 
 ## Design
 
-9. **Nothing was rendered by the designer.** KL viewed the canvas and approved the look; overflow or misalignment may exist. *Solution:* fix by eye on the phone.
+9. **The first build did not look like the mockups.** The original handoff had only prototype sources that could not be opened, and called them a loose reference. *Solution:* reference images and standalone HTML now exist; follow `06-design-fidelity.md`. The mockups are drawn for one phone size (390 × 844); behaviour on other sizes is undefined beyond "stretch widths, keep sizes".
 10. **Dark theme is drawn only for the Plan screen.** *Solution:* apply the token table; check each screen.
 11. **Expand and collapse of the calendar is drawn as two states.** It should be one continuous motion with the handle travelling down. *Solution:* animate the card height; the timeline slides out underneath.
 12. **Calendar bars are too small to tap individually.** A day is tappable; a single bar is not. *Open question:* is day-level tapping plus the timeline enough? Decide after real use.

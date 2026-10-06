@@ -39,7 +39,7 @@ a{color:#0F6B5C}a:hover{color:#0A4F44}
 </div>
 <sc-for list="{{ rows }}" as="w" hint-placeholder-count="2">
 <div style="display: flex; gap: 4px">
-<div style="width: 26px; flex: 0 0 auto; display: flex; flex-direction: column; gap: 4px; padding-top: 3px; font-size: 11px; line-height: 18px; color: {{ t.muted }}; text-align: right">
+<div style="width: 26px; flex: 0 0 auto; display: flex; flex-direction: column; gap: 4px; padding-top: 3px; font-size: 11px; line-height: {{ slotH }}; color: {{ t.muted }}; text-align: right">
 <div style="height: 26px; font-size: 12px; line-height: 26px; font-weight: 600">{{ w.no }}</div><div>am</div><div>pm</div><div>eve</div>
 </div>
 <div style="flex: 1 1 auto; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px">
@@ -47,7 +47,7 @@ a{color:#0F6B5C}a:hover{color:#0A4F44}
 <button onClick="{{ d.pick }}" aria-label="{{ d.label }}" style="border: none; background: transparent; padding: 3px 2px; border-radius: 10px; box-shadow: {{ d.ring }}; display: flex; flex-direction: column; gap: 4px; min-width: 0; opacity: {{ d.op }}">
 <span style="height: 26px; display: flex; align-items: center; justify-content: center"><span style="width: 26px; height: 26px; border-radius: 13px; background: {{ d.numBg }}; color: {{ d.numColor }}; font-size: 15px; font-weight: 600; display: flex; align-items: center; justify-content: center">{{ d.num }}</span></span>
 <sc-for list="{{ d.slots }}" as="s" hint-placeholder-count="3">
-<span style="display: flex; gap: 2px; height: 18px">
+<span style="display: flex; gap: 2px; height: {{ slotH }}">
 <sc-for list="{{ s.segs }}" as="sg" hint-placeholder-count="1">
 <span style="flex: 1 1 0; min-width: 0; box-sizing: border-box; border-radius: 6px; background: {{ sg.bg }}; border: 1.5px {{ sg.bs }} {{ sg.bd }}; box-shadow: {{ sg.ring }}"></span>
 </sc-for>
@@ -88,12 +88,12 @@ a{color:#0F6B5C}a:hover{color:#0A4F44}
 </sc-if>
 
 <sc-if value="{{ g.rest }}" hint-placeholder-val="{{ false }}">
-<div style="font-size: 13px; color: {{ t.muted }}; padding: 2px 4px 2px 76px">Rest day</div>
+<div style="font-size: 13px; color: {{ t.muted }}; padding: 2px 4px 2px 88px">Rest day</div>
 </sc-if>
 
 <sc-for list="{{ g.items }}" as="it" hint-placeholder-count="1">
 <div style="display: flex; gap: 10px">
-<div style="width: 62px; flex: 0 0 auto; padding: 14px 0 0 4px; box-sizing: border-box; font-size: 13px; font-weight: 600; color: {{ t.muted }}">{{ it.time }}</div>
+<div style="width: 74px; flex: 0 0 auto; padding: 14px 0 0 4px; box-sizing: border-box; font-size: 13px; font-weight: 600; color: {{ t.muted }}">{{ it.time }}</div>
 <div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 8px">
 <button onClick="{{ it.pick }}" style="text-align: left; border-radius: 14px; padding: 11px 14px; background: {{ it.bg }}; color: {{ it.color }}; border: 1.5px {{ it.bs }} {{ it.bd }}; box-shadow: {{ it.ring }}; display: flex; align-items: center; gap: 10px">
 <span style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 1px">
@@ -563,6 +563,7 @@ t: t, rows: rows, groups: groups,
 sheetOpen: !!sh, sheet: sheet,
 toastOpen: !!to, toast: toast,
 swapOpen: !!sf, swap: swap,
+slotH: expanded ? '13px' : '18px',
 expanded: expanded, topFlex: expanded ? '1 1 auto' : '0 0 auto', tlDisplay: expanded ? 'none' : 'flex',
 handleLabel: expanded ? 'Show less' : 'Look further ahead', handleDeg: expanded ? '180deg' : '0deg',
 toggleCal: function () { self.setState({ expanded: !expanded, toast: null }); },
