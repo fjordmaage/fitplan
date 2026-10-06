@@ -1,0 +1,575 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Plan — calendar and timeline</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700&display=swap">
+<style>
+html,body{margin:0;overflow:hidden}
+button{font-family:inherit;cursor:pointer}
+a{color:#0F6B5C}a:hover{color:#0A4F44}
+</style>
+</helmet>
+<div style="position: relative; width: 390px; height: 844px; box-sizing: border-box; background: {{ t.bg }}; color: {{ t.ink }}; font-family: 'Schibsted Grotesk', system-ui, sans-serif; display: flex; flex-direction: column; overflow: hidden">
+
+<div style="flex: {{ topFlex }}; padding: 20px 16px 0 16px; display: flex; flex-direction: column; gap: 14px">
+
+<div style="display: flex; justify-content: space-between; align-items: center; padding: 0 4px">
+<div style="display: flex; flex-direction: column; gap: 2px">
+<div style="font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: {{ t.muted }}">Today</div>
+<h1 style="margin: 0; font-size: 26px; line-height: 30px; font-weight: 700; letter-spacing: -0.01em">Tuesday 6 October</h1>
+</div>
+<a href="Settings.dc.html" aria-label="Goals and settings" style="width: 44px; height: 44px; box-sizing: border-box; border-radius: 22px; border: 1px solid {{ t.border }}; background: {{ t.surface }}; color: {{ t.ink }}; display: flex; align-items: center; justify-content: center">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="7" x2="20" y2="7"></line><line x1="4" y1="17" x2="20" y2="17"></line><circle cx="9" cy="7" r="2.5"></circle><circle cx="15" cy="17" r="2.5"></circle></svg>
+</a>
+</div>
+
+<div style="background: {{ t.surface }}; border-radius: 20px; padding: 12px 10px 4px 6px; display: flex; flex-direction: column; gap: 6px">
+
+<div style="display: flex; gap: 4px">
+<div style="width: 26px; flex: 0 0 auto; font-size: 11px; line-height: 16px; color: {{ t.muted }}; text-align: right">wk</div>
+<div style="flex: 1 1 auto; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; text-align: center; font-size: 12px; line-height: 16px; font-weight: 500; color: {{ t.muted }}">
+<div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div>Sun</div>
+</div>
+</div>
+<sc-for list="{{ rows }}" as="w" hint-placeholder-count="2">
+<div style="display: flex; gap: 4px">
+<div style="width: 26px; flex: 0 0 auto; display: flex; flex-direction: column; gap: 4px; padding-top: 3px; font-size: 11px; line-height: 18px; color: {{ t.muted }}; text-align: right">
+<div style="height: 26px; font-size: 12px; line-height: 26px; font-weight: 600">{{ w.no }}</div><div>am</div><div>pm</div><div>eve</div>
+</div>
+<div style="flex: 1 1 auto; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px">
+<sc-for list="{{ w.days }}" as="d" hint-placeholder-count="7">
+<button onClick="{{ d.pick }}" aria-label="{{ d.label }}" style="border: none; background: transparent; padding: 3px 2px; border-radius: 10px; box-shadow: {{ d.ring }}; display: flex; flex-direction: column; gap: 4px; min-width: 0; opacity: {{ d.op }}">
+<span style="height: 26px; display: flex; align-items: center; justify-content: center"><span style="width: 26px; height: 26px; border-radius: 13px; background: {{ d.numBg }}; color: {{ d.numColor }}; font-size: 15px; font-weight: 600; display: flex; align-items: center; justify-content: center">{{ d.num }}</span></span>
+<sc-for list="{{ d.slots }}" as="s" hint-placeholder-count="3">
+<span style="display: flex; gap: 2px; height: 18px">
+<sc-for list="{{ s.segs }}" as="sg" hint-placeholder-count="1">
+<span style="flex: 1 1 0; min-width: 0; box-sizing: border-box; border-radius: 6px; background: {{ sg.bg }}; border: 1.5px {{ sg.bs }} {{ sg.bd }}; box-shadow: {{ sg.ring }}"></span>
+</sc-for>
+</span>
+</sc-for>
+</button>
+</sc-for>
+</div>
+</div>
+</sc-for>
+
+<sc-if value="{{ expanded }}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-wrap: wrap; gap: 6px 14px; justify-content: center; font-size: 12px; color: {{ t.muted }}; padding: 4px 0 0 8px">
+<div style="display: flex; align-items: center; gap: 6px"><div style="width: 14px; height: 10px; border-radius: 3px; background: {{ t.ink }}"></div>Fixed</div>
+<div style="display: flex; align-items: center; gap: 6px"><div style="width: 14px; height: 10px; box-sizing: border-box; border-radius: 3px; border: 1.5px solid {{ t.accent }}; background: {{ t.flexFill }}"></div>Flexible</div>
+<div style="display: flex; align-items: center; gap: 6px"><div style="width: 14px; height: 10px; box-sizing: border-box; border-radius: 3px; border: 1.5px dashed {{ t.accent }}"></div>Day may change</div>
+<div style="display: flex; align-items: center; gap: 6px"><div style="width: 14px; height: 10px; border-radius: 3px; background: {{ t.hatch }}"></div>Busy</div>
+</div>
+</sc-if>
+<button onClick="{{ toggleCal }}" style="height: 40px; border: none; background: transparent; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px; font-weight: 600; color: {{ t.muted }}">
+{{ handleLabel }}
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="transform: rotate({{ handleDeg }})"><polyline points="6 9 12 15 18 9"></polyline></svg>
+</button>
+</div>
+
+</div>
+
+<div ref="{{ setTl }}" style="flex: 1 1 auto; min-height: 0; position: relative; overflow-y: auto; scrollbar-width: none; padding: 14px 16px 120px 16px; display: {{ tlDisplay }}; flex-direction: column; gap: 18px">
+<sc-for list="{{ groups }}" as="g" hint-placeholder-count="4">
+<div ref="{{ g.ref }}" style="display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; align-items: center; gap: 10px; padding: 0 4px">
+<h2 style="margin: 0; font-size: 15px; font-weight: 700">{{ g.title }}</h2>
+<div style="flex: 1 1 auto; height: 1px; background: {{ t.line }}"></div>
+</div>
+
+<sc-if value="{{ g.advice }}" hint-placeholder-val="{{ false }}">
+<div style="font-size: 14px; line-height: 20px; background: {{ t.accentSoft }}; border-radius: 12px; padding: 10px 12px">{{ g.advice }}</div>
+</sc-if>
+
+<sc-if value="{{ g.rest }}" hint-placeholder-val="{{ false }}">
+<div style="font-size: 13px; color: {{ t.muted }}; padding: 2px 4px 2px 76px">Rest day</div>
+</sc-if>
+
+<sc-for list="{{ g.items }}" as="it" hint-placeholder-count="1">
+<div style="display: flex; gap: 10px">
+<div style="width: 62px; flex: 0 0 auto; padding: 14px 0 0 4px; box-sizing: border-box; font-size: 13px; font-weight: 600; color: {{ t.muted }}">{{ it.time }}</div>
+<div style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 8px">
+<button onClick="{{ it.pick }}" style="text-align: left; border-radius: 14px; padding: 11px 14px; background: {{ it.bg }}; color: {{ it.color }}; border: 1.5px {{ it.bs }} {{ it.bd }}; box-shadow: {{ it.ring }}; display: flex; align-items: center; gap: 10px">
+<span style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 1px">
+<span style="font-size: 16px; font-weight: 700; line-height: 22px">{{ it.title }}</span>
+<span style="font-size: 13px; line-height: 18px; color: {{ it.metaColor }}">{{ it.meta }}</span>
+</span>
+<sc-if value="{{ it.locked }}" hint-placeholder-val="{{ false }}">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="Will not be moved"><rect x="5" y="11" width="14" height="9" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg>
+</sc-if>
+<sc-if value="{{ it.canMove }}" hint-placeholder-val="{{ false }}">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-label="Show options"><polyline points="6 9 12 15 18 9"></polyline></svg>
+</sc-if>
+</button>
+<sc-if value="{{ it.selected }}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<sc-if value="{{ it.guide }}" hint-placeholder-val="{{ false }}">
+<a href="Before.dc.html" style="flex: 1 1 100%; height: 44px; border-radius: 12px; background: {{ t.accent }}; color: {{ t.onAccent }}; font-size: 15px; font-weight: 700; text-decoration: none; display: flex; align-items: center; justify-content: center">Start</a>
+</sc-if>
+<sc-if value="{{ it.canMove }}" hint-placeholder-val="{{ false }}">
+<button onClick="{{ it.edit }}" style="flex: 1 1 0; height: 44px; border-radius: 12px; border: 1px solid {{ t.border }}; background: {{ t.surface }}; color: {{ t.ink }}; font-size: 15px; font-weight: 600">Move</button>
+<button onClick="{{ it.swap }}" style="flex: 1 1 0; height: 44px; border-radius: 12px; border: 1px solid {{ t.border }}; background: {{ t.surface }}; color: {{ t.ink }}; font-size: 15px; font-weight: 600">Swap</button>
+</sc-if>
+<sc-if value="{{ it.canCancel }}" hint-placeholder-val="{{ false }}">
+<button onClick="{{ it.cancel }}" style="flex: 1 1 0; height: 44px; border-radius: 12px; border: 1px solid {{ t.border }}; background: {{ t.surface }}; color: {{ t.ink }}; font-size: 15px; font-weight: 600">Cancel this one</button>
+</sc-if>
+</div>
+</sc-if>
+</div>
+</div>
+</sc-for>
+</div>
+</sc-for>
+</div>
+
+<div style="flex: 0 0 auto; height: 68px; background: {{ t.surface }}; border-top: 1px solid {{ t.line }}; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: center; padding: 0 8px">
+<button style="height: 56px; border: none; background: transparent; color: {{ t.ink }}; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 12px; font-weight: 700; padding: 0">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="15" rx="3"></rect><line x1="4" y1="10" x2="20" y2="10"></line><line x1="9" y1="3" x2="9" y2="7"></line><line x1="15" y1="3" x2="15" y2="7"></line></svg>
+Plan
+</button>
+<a href="Library.dc.html" style="height: 56px; color: {{ t.muted }}; text-decoration: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 12px; font-weight: 500">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="7" x2="20" y2="7"></line><line x1="8" y1="12" x2="20" y2="12"></line><line x1="8" y1="17" x2="20" y2="17"></line><circle cx="4.5" cy="7" r="1"></circle><circle cx="4.5" cy="12" r="1"></circle><circle cx="4.5" cy="17" r="1"></circle></svg>
+Exercises
+</a>
+<div style="display: flex; justify-content: center">
+<a href="Add.dc.html" aria-label="Add a workout, a busy time or a past activity" style="width: 52px; height: 52px; border-radius: 26px; background: {{ t.ink }}; color: {{ t.onInk }}; display: flex; align-items: center; justify-content: center">
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+</a>
+</div>
+<a href="Body.dc.html" style="height: 56px; color: {{ t.muted }}; text-decoration: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 12px; font-weight: 500">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2.5-6 4 12 2.5-6h5"></path></svg>
+Body
+</a>
+<a href="Learn.dc.html" style="height: 56px; color: {{ t.muted }}; text-decoration: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 12px; font-weight: 500">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5h10a3 3 0 0 1 3 3v11H8a3 3 0 0 1-3-3z"></path><line x1="9" y1="10" x2="14" y2="10"></line><line x1="9" y1="14" x2="13" y2="14"></line></svg>
+Learn
+</a>
+</div>
+
+<sc-if value="{{ toastOpen }}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; left: 12px; right: 12px; bottom: 80px; background: {{ t.ink }}; color: {{ t.onInk }}; border-radius: 16px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.25)">
+<div style="display: flex; flex-direction: column; gap: 3px">
+<div style="font-size: 15px; font-weight: 700">{{ toast.head }}</div>
+<div style="font-size: 14px; line-height: 20px; color: {{ t.onInkMuted }}">{{ toast.text }}</div>
+</div>
+<sc-if value="{{ toast.done }}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; gap: 8px">
+<button onClick="{{ toast.undo }}" style="flex: 1 1 0; height: 44px; border-radius: 12px; border: 1px solid {{ t.onInkMuted }}; background: transparent; color: {{ t.onInk }}; font-size: 14px; font-weight: 600">Undo</button>
+<button onClick="{{ toast.ok }}" style="flex: 1 1 0; height: 44px; border-radius: 12px; border: none; background: {{ t.onInk }}; color: {{ t.ink }}; font-size: 14px; font-weight: 700">Looks good</button>
+</div>
+</sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ sheetOpen }}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; left: 0; top: 0; width: 390px; height: 844px; display: flex; flex-direction: column; justify-content: flex-end">
+<button onClick="{{ sheet.close }}" aria-label="Close without saving" style="position: absolute; left: 0; top: 0; width: 390px; height: 844px; border: none; padding: 0; background: rgba(8,14,12,0.5)"></button>
+<div style="position: relative; background: {{ t.surface }}; border-radius: 24px 24px 0 0; padding: 10px 16px 18px 16px; display: flex; flex-direction: column; gap: 16px">
+
+<div style="display: flex; justify-content: center"><div style="width: 40px; height: 4px; border-radius: 2px; background: {{ t.border }}"></div></div>
+
+<div style="display: flex; flex-direction: column; gap: 2px; padding: 0 4px">
+<div style="font-size: 22px; line-height: 28px; font-weight: 700">{{ sheet.title }}</div>
+<div style="font-size: 13px; color: {{ t.muted }}">{{ sheet.meta }}</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="font-size: 13px; font-weight: 600; color: {{ t.muted }}; padding: 0 4px">Which day</div>
+<div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px">
+<sc-for list="{{ sheet.days }}" as="c" hint-placeholder-count="7">
+<button onClick="{{ c.pick }}" style="height: 62px; border-radius: 12px; border: 2px solid {{ c.bd }}; background: {{ c.bg }}; color: {{ c.fg }}; padding: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px">
+<span style="font-size: 12px; font-weight: 500">{{ c.dow }}</span>
+<span style="font-size: 17px; font-weight: 700; line-height: 22px">{{ c.num }}</span>
+<span style="font-size: 11px; font-weight: 700">{{ c.word }}</span>
+</button>
+</sc-for>
+</div>
+<div style="font-size: 14px; line-height: 20px; border-radius: 12px; padding: 10px 12px; background: {{ sheet.reasonBg }}; color: {{ sheet.reasonFg }}">{{ sheet.reason }}</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="font-size: 13px; font-weight: 600; color: {{ t.muted }}; padding: 0 4px">Time of day</div>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px">
+<sc-for list="{{ sheet.slots }}" as="p" hint-placeholder-count="3">
+<button onClick="{{ p.pick }}" style="height: 44px; border-radius: 12px; border: 2px solid {{ p.bd }}; background: {{ t.surface }}; color: {{ t.ink }}; font-size: 14px; font-weight: {{ p.weight }}">{{ p.name }}</button>
+</sc-for>
+</div>
+<button style="height: 44px; border-radius: 12px; border: 1px dashed {{ t.border }}; background: {{ t.surface }}; color: {{ t.ink }}; font-size: 14px; font-weight: 600">Set an exact time</button>
+</div>
+
+<label style="display: flex; align-items: center; justify-content: space-between; gap: 12px; background: {{ t.empty }}; border-radius: 14px; padding: 12px 14px">
+<span style="display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 15px; font-weight: 600">Lock in place</span>
+<span style="font-size: 13px; color: {{ t.muted }}">The app plans around it and won't move it.</span>
+</span>
+<input type="checkbox" checked="{{ sheet.lock }}" onChange="{{ sheet.toggleLock }}" style="width: 24px; height: 24px; flex: 0 0 auto">
+</label>
+
+<div style="display: flex; flex-direction: column; gap: 8px">
+<button onClick="{{ sheet.save }}" style="height: 48px; border-radius: 12px; border: none; background: {{ t.accent }}; color: {{ t.onAccent }}; font-size: 16px; font-weight: 700">{{ sheet.saveLabel }}</button>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+<button onClick="{{ sheet.did }}" style="height: 44px; border-radius: 12px; border: 1px solid {{ t.border }}; background: {{ t.surface }}; color: {{ t.ink }}; font-size: 14px; font-weight: 600">I already did it</button>
+<button onClick="{{ sheet.close }}" style="height: 44px; border-radius: 12px; border: 1px solid {{ t.border }}; background: {{ t.surface }}; color: {{ t.ink }}; font-size: 14px; font-weight: 600">Keep as it is</button>
+</div>
+</div>
+
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ swapOpen }}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; left: 0; top: 0; width: 390px; height: 844px; display: flex; flex-direction: column; justify-content: flex-end">
+<button onClick="{{ swap.close }}" aria-label="Close without swapping" style="position: absolute; left: 0; top: 0; width: 390px; height: 844px; border: none; padding: 0; background: rgba(8,14,12,0.5)"></button>
+<div style="position: relative; background: {{ t.surface }}; border-radius: 24px 24px 0 0; padding: 10px 16px 18px 16px; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; justify-content: center"><div style="width: 40px; height: 4px; border-radius: 2px; background: {{ t.border }}"></div></div>
+<div style="display: flex; flex-direction: column; gap: 2px; padding: 0 4px">
+<div style="font-size: 22px; line-height: 28px; font-weight: 700">Do something else</div>
+<div style="font-size: 13px; color: {{ t.muted }}">Instead of {{ swap.title }}. Rated for how your body and the days around it look.</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<sc-for list="{{ swap.alts }}" as="a" hint-placeholder-count="4">
+<button onClick="{{ a.pick }}" style="text-align: left; border-radius: 14px; border: 1px solid {{ t.border }}; background: {{ t.surface }}; color: {{ t.ink }}; padding: 10px 12px; display: flex; align-items: center; gap: 10px">
+<span style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 1px">
+<span style="font-size: 15px; font-weight: 700">{{ a.title }}</span>
+<span style="font-size: 13px; color: {{ t.muted }}">{{ a.meta }}</span>
+<span style="font-size: 13px; color: {{ a.fg }}">{{ a.why }}</span>
+</span>
+<span style="flex: 0 0 auto; font-size: 12px; font-weight: 700; padding: 4px 8px; border-radius: 8px; background: {{ a.bg }}; color: {{ a.fg }}">{{ a.word }}</span>
+</button>
+</sc-for>
+</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+<a href="Routine.dc.html" style="height: 44px; box-sizing: border-box; border-radius: 12px; border: 1px solid {{ t.border }}; color: {{ t.ink }}; font-size: 14px; font-weight: 600; text-decoration: none; display: flex; align-items: center; justify-content: center">Design my own</a>
+<button onClick="{{ swap.close }}" style="height: 44px; border-radius: 12px; border: 1px solid {{ t.border }}; background: {{ t.surface }}; color: {{ t.ink }}; font-size: 14px; font-weight: 600">Keep as it is</button>
+</div>
+</div>
+</div>
+</sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"dark":{"editor":"boolean","default":false},"accent":{"editor":"color","default":"#0F6B5C","options":["#0F6B5C","#1D4ED8","#B4530B","#7C3AED"]},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+scrollToDay(day) {
+var c = this.tlEl;
+var el = this.groupEls ? this.groupEls[day] : null;
+if (c && el && c.scrollTo) c.scrollTo({ top: Math.max(0, el.offsetTop - 6), behavior: 'smooth' });
+}
+renderVals() {
+var self = this;
+var st = this.state || {};
+var FIRST = 6, LAST = 18, CAL = 5, END = 46;
+function num(day) { return day <= 31 ? day : day - 31; }
+function longLabel(day) { return dowOf(day) + ' ' + num(day) + (day <= 31 ? ' October' : ' November'); }
+var selDay = st.selDay == null ? FIRST : st.selDay;
+var selItem = ('selItem' in st) ? st.selItem : 'b';
+var moves = st.moves || {};
+var locks = st.locks || {};
+var gone = st.gone || {};
+var swaps = st.swaps || {};
+var dark = this.props.dark === true || this.props.dark === 'true';
+var accent = this.props.accent;
+if (!accent || (dark && accent === '#0F6B5C')) accent = dark ? '#5FD0B8' : '#0F6B5C';
+var t = dark ? {
+bg: '#0D1412', surface: '#18211E', ink: '#EEF3F1', muted: '#A7B3AE', line: '#2A3531', border: '#3A4641',
+empty: '#232D2A', onInk: '#0D1412', onInkMuted: '#3C4843', onAccent: '#0D1412', busyText: '#C5CFCA',
+hatch: 'repeating-linear-gradient(135deg, #8A9691 0 2px, #2A3531 2px 5px)',
+hatchCard: 'repeating-linear-gradient(135deg, #1F2926 0 6px, #2C3834 6px 8px)',
+accent: accent, accentSoft: accent + '2E', flexFill: accent + '80',
+good: ['#173626', '#8FDDB0'], ok: ['#3D3212', '#F0CE74'], avoid: ['#46201A', '#F5A99B']
+} : {
+bg: '#EBEFED', surface: '#FFFFFF', ink: '#14201C', muted: '#4D5A55', line: '#D5DCD8', border: '#C9D2CE',
+empty: '#EDF1EF', onInk: '#FFFFFF', onInkMuted: '#D5DDD9', onAccent: '#FFFFFF', busyText: '#3C4843',
+hatch: 'repeating-linear-gradient(135deg, #7A8580 0 2px, #DDE3E0 2px 5px)',
+hatchCard: 'repeating-linear-gradient(135deg, #E3E8E5 0 6px, #D3DAD6 6px 8px)',
+accent: accent, accentSoft: accent + '22', flexFill: accent + '73',
+good: ['#DDF0E4', '#17603A'], ok: ['#FBEBC4', '#7A5200'], avoid: ['#F9D9D3', '#9B2C1C']
+};
+var slotNames = ['Morning', 'Afternoon', 'Evening'];
+var dowNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+function dowOf(day) { return dowNames[(day - 5) % 7]; }
+function dayLabel(day) { return day === FIRST ? 'today' : dowOf(day) + ' ' + num(day); }
+var base = [
+{ id: 'a', day: 5, slots: [2], kind: 'fixed', time: '17:00', title: 'Climbing gym', meta: 'Done' },
+{ id: 'b', day: 6, slot: 1, kind: 'flex', title: 'Run · 6 km', meta: '40 min · easy pace', guide: true },
+{ id: 'c', day: 6, slot: 1, kind: 'flex', title: 'Back routine', meta: '15 min · right after the run', guide: true, pair: 'b' },
+{ id: 'd', day: 7, slots: [2], kind: 'fixed', time: '17:00', title: 'Climbing gym', meta: 'Until 19:00' },
+{ id: 'e', day: 8, slots: [2], kind: 'busy', time: 'Evening', title: 'Busy', meta: 'Nothing planned around it' },
+{ id: 'f', day: 9, slot: 1, kind: 'flex', title: 'Back routine', meta: '15 min' },
+{ id: 'g', day: 10, slot: 0, kind: 'flex', title: 'Run · 6 km', meta: '40 min · easy pace' },
+{ id: 'h', day: 12, slots: [2], kind: 'fixed', time: '17:00', title: 'Climbing gym', meta: 'Until 19:00' },
+{ id: 'i', day: 13, slot: 1, kind: 'flex', title: 'Run · 6 km', meta: '40 min · easy pace' },
+{ id: 'j', day: 13, slot: 1, kind: 'flex', title: 'Back routine', meta: '15 min · right after the run', pair: 'i' },
+{ id: 'k', day: 14, slots: [2], kind: 'fixed', time: '17:00', title: 'Climbing gym', meta: 'Until 19:00' },
+{ id: 'l', day: 16, slots: [0], kind: 'fixed', time: '08:15', title: 'PE class', meta: 'About 90 min' },
+{ id: 'm', day: 17, slot: 0, kind: 'flex', title: 'Run · 6 km', meta: '40 min · easy pace' },
+{ id: 'n', day: 18, slots: [0, 1, 2], kind: 'busy', time: 'All day', title: 'Away', meta: 'Nothing planned' }
+];
+for (var gw = 2; gw <= 5; gw++) {
+var mon = CAL + gw * 7;
+base.push({ id: 't' + gw + 'a', day: mon, slots: [2], kind: 'fixed', time: '17:00', title: 'Climbing gym', meta: 'Until 19:00' });
+base.push({ id: 't' + gw + 'b', day: mon + 1, slot: 1, kind: 'flex', title: 'Run · 6 km', meta: '40 min · easy pace', tentative: true });
+base.push({ id: 't' + gw + 'c', day: mon + 1, slot: 1, kind: 'flex', title: 'Back routine', meta: '15 min · right after the run', pair: 't' + gw + 'b', tentative: true });
+base.push({ id: 't' + gw + 'd', day: mon + 2, slots: [2], kind: 'fixed', time: '17:00', title: 'Climbing gym', meta: 'Until 19:00' });
+base.push({ id: 't' + gw + 'e', day: mon + 4, slot: 1, kind: 'flex', title: 'Back routine', meta: '15 min', tentative: true });
+base.push({ id: 't' + gw + 'f', day: mon + 5, slot: 0, kind: 'flex', title: 'Run · 6 km', meta: '40 min · easy pace', tentative: true });
+}
+function resolve(mv, skip) {
+var out = [];
+base.forEach(function (x, order) {
+if (skip[x.id]) return;
+var y = { id: x.id, kind: x.kind, title: x.title, meta: x.meta, guide: x.guide === true, pair: x.pair || null, order: order, tentative: x.tentative === true && !mv[x.id] && !(x.pair && mv[x.pair]) };
+if (swaps[x.id]) { y.title = swaps[x.id].title; y.meta = swaps[x.id].meta; }
+if (x.kind === 'flex') {
+var m = mv[x.id];
+var own = !!m;
+if (!m && x.pair && mv[x.pair]) m = mv[x.pair];
+y.day = m ? m.day : x.day;
+var sl = m ? m.slot : x.slot;
+y.slots = [sl];
+y.follows = !!x.pair && !own;
+y.time = y.follows ? '' : slotNames[sl];
+} else {
+y.day = x.day; y.slots = x.slots; y.time = x.time; y.follows = false;
+}
+out.push(y);
+});
+return out;
+}
+var items = resolve(moves, gone);
+function find(id) { var r = null; items.forEach(function (x) { if (x.id === id) r = x; }); return r; }
+function shortName(x) { return x.title.split(' ·')[0].toLowerCase(); }
+function suit(x, day, slot) {
+var others = items.filter(function (y) { return y.id !== x.id && !(y.pair === x.id && y.follows); });
+var res = null;
+others.forEach(function (y) {
+if (res && res.level === 'avoid') return;
+if (y.day === day && y.kind === 'busy' && y.slots.indexOf(slot) >= 0) {
+res = { level: 'avoid', text: y.slots.length === 3 ? 'You’re away all day.' : 'You’re busy that ' + slotNames[slot].toLowerCase() + '.' };
+} else if (y.day === day && y.title === x.title) {
+res = { level: 'avoid', text: 'There’s already a ' + shortName(x) + ' that day.' };
+} else if (!res && Math.abs(y.day - day) === 1 && y.title === x.title) {
+res = { level: 'ok', text: 'Back to back with your other ' + shortName(x) + '. A day in between gives better recovery.' };
+} else if (!res && y.day === day && y.kind === 'fixed') {
+res = { level: 'ok', text: 'Same day as ' + y.title.toLowerCase() + '. Doable, but it makes a full day.' };
+}
+});
+return res || { level: 'good', text: 'Rested by then, and nothing else is in the way.' };
+}
+function snapshot() { return { moves: moves, locks: locks, gone: gone, swaps: swaps }; }
+function announce(text, prev, day) {
+self.setState({ toast: { head: 'Replanning…', text: 'Checking recovery and the days around it.', done: false } });
+setTimeout(function () {
+self.setState({ toast: { head: 'Plan updated', text: text, done: true, prev: prev } });
+if (day != null) self.scrollToDay(day);
+}, 800);
+}
+var selObj = selItem ? find(selItem) : null;
+function slotStyle(kind) {
+if (kind === 'fixed') return { bg: t.ink, bd: t.ink };
+if (kind === 'flex') return { bg: t.flexFill, bd: t.accent };
+if (kind === 'busy') return { bg: t.hatch, bd: 'transparent' };
+return { bg: t.empty, bd: 'transparent' };
+}
+var expanded = st.expanded === true;
+var startW = Math.min(4, Math.max(0, Math.floor((selDay - CAL) / 7)));
+var weekIdx = expanded ? [0, 1, 2, 3, 4, 5] : [startW, startW + 1];
+var rows = weekIdx.map(function (wi) {
+var days = [];
+for (var k = 0; k < 7; k++) {
+(function (day) {
+var slots = [0, 1, 2].map(function (si) {
+var here = items.filter(function (x) { return x.day === day && x.slots.indexOf(si) >= 0; });
+var segs = here.map(function (x) {
+var s = slotStyle(x.kind);
+s.bs = 'solid';
+if (x.tentative) { s.bg = 'transparent'; s.bs = 'dashed'; }
+s.ring = selObj && selObj.id === x.id ? '0 0 0 2px ' + t.surface + ', 0 0 0 4px ' + t.ink : 'none';
+return s;
+});
+if (segs.length === 0) { var e = slotStyle('empty'); e.ring = 'none'; e.bs = 'solid'; segs.push(e); }
+return { segs: segs };
+});
+var today = day === FIRST;
+days.push({
+num: num(day), dow: dowOf(day), label: longLabel(day),
+op: day < FIRST ? '0.5' : '1',
+numBg: today ? t.ink : 'transparent', numColor: today ? t.onInk : t.ink,
+ring: selDay === day ? 'inset 0 0 0 1.5px ' + t.muted : 'none',
+slots: slots,
+pick: function () {
+if (day < FIRST) return;
+self.setState({ selDay: day, selItem: null, expanded: false });
+setTimeout(function () { self.scrollToDay(day); }, 90);
+}
+});
+})(CAL + wi * 7 + k);
+}
+return { no: 41 + wi, days: days };
+});
+if (!this.groupEls) this.groupEls = {};
+var groups = [];
+for (var day = FIRST; day <= END; day++) {
+(function (day) {
+var list = items.filter(function (x) { return x.day === day; });
+list.sort(function (a, b) { return (a.slots[0] - b.slots[0]) || (a.order - b.order); });
+var view = list.map(function (x) {
+var sel = x.id === selItem;
+var v = x.kind === 'fixed'
+? { bg: t.ink, color: t.onInk, bd: t.ink, metaColor: t.onInkMuted }
+: x.kind === 'flex'
+? { bg: t.surface, color: t.ink, bd: t.accent, metaColor: t.muted }
+: { bg: t.hatchCard, color: t.busyText, bd: 'transparent', metaColor: t.busyText };
+v.title = x.title; v.meta = x.tentative ? x.meta.split(' ·')[0] + ' · day may change' : x.meta; v.time = x.time;
+v.bs = x.tentative ? 'dashed' : 'solid';
+v.locked = x.kind === 'fixed' || locks[x.id] === true;
+v.guide = x.guide && day === FIRST;
+v.canMove = x.kind === 'flex';
+v.canCancel = x.kind === 'fixed';
+v.selected = sel;
+v.ring = sel ? '0 0 0 2px ' + t.bg + ', 0 0 0 4px ' + t.ink : 'none';
+v.pick = function () { self.setState({ selItem: sel ? null : x.id, selDay: day }); };
+v.edit = function () { self.setState({ toast: null, sheet: { id: x.id, day: x.day, slot: x.slots[0], lock: locks[x.id] === true } }); };
+v.swap = function () { self.setState({ toast: null, swapFor: x.id }); };
+v.cancel = function () {
+var prev = snapshot();
+var g2 = Object.assign({}, gone); g2[x.id] = true;
+self.setState({ gone: g2, selItem: null });
+announce(x.title + ' on ' + dayLabel(day) + ' is cancelled. Nothing else needs to move, and you get extra recovery before the next session.', prev, day);
+};
+return v;
+});
+var advice = '';
+if (day === FIRST) {
+var run = find('b');
+if (run && run.day === FIRST) advice = 'Your legs are fresh, and a run lets your forearms rest before tomorrow’s climb.';
+else if (list.length === 0) advice = 'Nothing planned today. Rest is part of the plan.';
+}
+groups.push({
+title: day === FIRST ? 'Today' : (day === FIRST + 1 ? 'Tomorrow · ' + dowOf(day) + ' ' + day : longLabel(day)),
+advice: advice, rest: list.length === 0, items: view,
+ref: function (el) { if (el) self.groupEls[day] = el; }
+});
+})(day);
+}
+var sh = st.sheet || null;
+var sheet = { title: '', meta: '', days: [], slots: [], reason: '', reasonBg: t.empty, reasonFg: t.ink, lock: false, saveLabel: 'Save' };
+if (sh) {
+var x = find(sh.id);
+var cur = suit(x, sh.day, sh.slot);
+var hasFollower = items.some(function (y) { return y.pair === x.id && y.follows; });
+var changed = sh.day !== x.day || sh.slot !== x.slots[0];
+sheet.title = x.title;
+sheet.meta = 'Now: ' + dayLabel(x.day) + ', ' + slotNames[x.slots[0]].toLowerCase() + ' · ' + x.meta.split(' ·')[0];
+sheet.lock = sh.lock === true;
+sheet.reason = cur.text + (changed && hasFollower ? ' Your back routine moves with it.' : '');
+sheet.reasonBg = t[cur.level][0];
+sheet.reasonFg = t[cur.level][1];
+sheet.saveLabel = changed ? 'Move to ' + dayLabel(sh.day) + ', ' + slotNames[sh.slot].toLowerCase() : 'Save';
+for (var d = CAL; d <= LAST; d++) {
+(function (d) {
+if (d < FIRST) {
+sheet.days.push({ dow: dowOf(d), num: d, word: 'Past', bg: t.empty, fg: t.muted, bd: 'transparent', pick: function () {} });
+return;
+}
+var s = suit(x, d, sh.slot);
+sheet.days.push({
+dow: dowOf(d), num: d, word: s.level === 'good' ? 'Good' : (s.level === 'ok' ? 'OK' : 'Avoid'),
+bg: t[s.level][0], fg: t[s.level][1], bd: d === sh.day ? t.ink : 'transparent',
+pick: function () { self.setState({ sheet: Object.assign({}, sh, { day: d }) }); }
+});
+})(d);
+}
+sheet.slots = slotNames.map(function (name, si) {
+return {
+name: name, bd: si === sh.slot ? t.ink : t.border, weight: si === sh.slot ? '700' : '500',
+pick: function () { self.setState({ sheet: Object.assign({}, sh, { slot: si }) }); }
+};
+});
+sheet.toggleLock = function () { self.setState({ sheet: Object.assign({}, sh, { lock: !sh.lock }) }); };
+sheet.close = function () { self.setState({ sheet: null }); };
+sheet.did = function () {
+var prev = snapshot();
+var g2 = Object.assign({}, gone); g2[x.id] = true;
+self.setState({ gone: g2, sheet: null, selItem: null });
+announce(x.title + ' is logged as done. Your recovery estimate now counts it, and the coming days are planned from there.', prev, null);
+};
+sheet.save = function () {
+var lockChanged = sh.lock !== (locks[x.id] === true);
+if (!changed && !lockChanged) { self.setState({ sheet: null }); return; }
+var prev = snapshot();
+var m2 = Object.assign({}, moves); m2[x.id] = { day: sh.day, slot: sh.slot };
+var l2 = Object.assign({}, locks); l2[x.id] = sh.lock;
+self.setState({ moves: m2, locks: l2, sheet: null, selDay: sh.day, selItem: x.id });
+var text = changed ? x.title + ' moved to ' + dayLabel(sh.day) + ', ' + slotNames[sh.slot].toLowerCase() + '.' : x.title + ' stays where it is.';
+if (changed && hasFollower) text += ' Your back routine moved with it, because it works best right after a run.';
+if (changed && cur.level !== 'good') text += ' Keep in mind: ' + cur.text;
+if (sh.lock) text += ' It’s locked, so the app plans around it from now on.';
+announce(text, prev, sh.day);
+};
+}
+var to = st.toast || null;
+var toast = { head: '', text: '', done: false };
+if (to) {
+toast.head = to.head; toast.text = to.text; toast.done = to.done === true;
+toast.ok = function () { self.setState({ toast: null }); };
+toast.undo = function () {
+var p = to.prev || {};
+self.setState({ moves: p.moves || {}, locks: p.locks || {}, gone: p.gone || {}, swaps: p.swaps || {}, toast: null, selItem: null });
+};
+}
+var sf = st.swapFor ? find(st.swapFor) : null;
+var swap = { title: '', alts: [] };
+if (sf) {
+var poolRun = [
+{ title: 'Run · 6 km', meta: '40 min · easy pace', level: 'good', why: 'What the app first planned here.', after: 'Back to the original plan.' },
+{ title: 'Long run · 9 km', meta: '60 min · easy pace', level: 'good', why: 'Your legs are fresh enough for the extra distance.', after: 'More load on your legs, so the app keeps your next run easy.' },
+{ title: 'Cycling', meta: '45 min · easy', level: 'good', why: 'Same kind of fitness work, gentler on the joints.', after: 'The load is about the same, so nothing else needs to change.' },
+{ title: 'Intervals · 5 km', meta: '30 min · hard', level: 'ok', why: 'Hard on the legs. Fine now, if the next run stays easy.', after: 'That’s a hard session, so the app keeps your next run easy.' },
+{ title: 'Finger training', meta: '20 min', level: 'avoid', why: 'Your forearms are still recovering from climbing.', after: 'Keep in mind: your forearms get less rest before the next climb.' }
+];
+var poolBack = [
+{ title: 'Back routine', meta: '15 min', level: 'good', why: 'What the app first planned here.', after: 'Back to the original plan.' },
+{ title: 'Core routine', meta: '15 min', level: 'good', why: 'Supports your back without tiring climbing muscles.', after: 'The load is about the same, so nothing else needs to change.' },
+{ title: 'Mobility and stretching', meta: '15 min', level: 'good', why: 'Light, and it helps recovery.', after: 'Lighter than planned, so nothing else needs to change.' },
+{ title: 'Yoga flow', meta: '20 min', level: 'ok', why: 'Good for mobility, but less back strengthening.', after: 'The app will bring the back routine round again soon.' },
+{ title: 'Pull-ups and rows', meta: '20 min', level: 'avoid', why: 'Loads the same muscles as climbing.', after: 'Keep in mind: this tires the muscles you climb with.' }
+];
+var isBack = /routine|stretch|yoga|pull/i.test(sf.title);
+swap.title = sf.title;
+swap.alts = (isBack ? poolBack : poolRun).filter(function (a) { return a.title !== sf.title; }).map(function (a) {
+return {
+title: a.title, meta: a.meta, why: a.why,
+word: a.level === 'good' ? 'Good' : (a.level === 'ok' ? 'OK' : 'Avoid'),
+bg: t[a.level][0], fg: t[a.level][1],
+pick: function () {
+var prev = snapshot();
+var s2 = Object.assign({}, swaps); s2[sf.id] = { title: a.title, meta: a.meta };
+self.setState({ swaps: s2, swapFor: null, selItem: sf.id });
+announce(sf.title + ' swapped for ' + a.title + '. ' + a.after, prev, sf.day);
+}
+};
+});
+swap.close = function () { self.setState({ swapFor: null }); };
+}
+return {
+t: t, rows: rows, groups: groups,
+sheetOpen: !!sh, sheet: sheet,
+toastOpen: !!to, toast: toast,
+swapOpen: !!sf, swap: swap,
+expanded: expanded, topFlex: expanded ? '1 1 auto' : '0 0 auto', tlDisplay: expanded ? 'none' : 'flex',
+handleLabel: expanded ? 'Show less' : 'Look further ahead', handleDeg: expanded ? '180deg' : '0deg',
+toggleCal: function () { self.setState({ expanded: !expanded, toast: null }); },
+setTl: function (el) { if (el) self.tlEl = el; }
+};
+}
+}
+</script>
+</body>
+</html>

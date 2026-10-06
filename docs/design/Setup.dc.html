@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>First-time setup</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700&display=swap">
+<style>
+html,body{margin:0;overflow:hidden}
+button{font-family:inherit;cursor:pointer}
+a{color:#0F6B5C}a:hover{color:#0A4F44}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #FFFFFF; color: #14201C; font-family: 'Schibsted Grotesk', system-ui, sans-serif; display: flex; flex-direction: column; overflow: hidden; padding: 20px 20px 24px 20px; gap: 22px">
+
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px">
+<div style="height: 5px; border-radius: 3px; background: #14201C"></div>
+<div style="height: 5px; border-radius: 3px; background: #14201C"></div>
+<div style="height: 5px; border-radius: 3px; background: {{accent}}"></div>
+<div style="height: 5px; border-radius: 3px; background: #DDE3E0"></div>
+<div style="height: 5px; border-radius: 3px; background: #DDE3E0"></div>
+</div>
+<div style="font-size: 13px; color: #4D5A55">Step 3 of 5 · about a minute left</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h1 style="margin: 0; font-size: 26px; line-height: 30px; font-weight: 700; letter-spacing: -0.01em">What do you want to fit in?</h1>
+<div style="font-size: 14px; line-height: 20px; color: #4D5A55">Things without a set time. The app finds the best days and moves them when life gets in the way.</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="border: 1.5px solid {{accent}}; border-radius: 16px; padding: 12px 14px; display: flex; align-items: center; gap: 12px">
+<div style="flex: 1 1 auto; display: flex; flex-direction: column; gap: 1px">
+<div style="font-size: 16px; font-weight: 700">Run · 6 km</div>
+<div style="font-size: 13px; color: #4D5A55">2 times a week</div>
+</div>
+<button style="height: 44px; padding: 0 14px; border-radius: 12px; border: 1px solid #C9D2CE; background: #FFFFFF; color: #14201C; font-size: 14px; font-weight: 600">Change</button>
+</div>
+<div style="border: 1.5px solid {{accent}}; border-radius: 16px; padding: 12px 14px; display: flex; align-items: center; gap: 12px">
+<div style="flex: 1 1 auto; display: flex; flex-direction: column; gap: 1px">
+<div style="font-size: 16px; font-weight: 700">Back routine</div>
+<div style="font-size: 13px; color: #4D5A55">App decides how often</div>
+</div>
+<button style="height: 44px; padding: 0 14px; border-radius: 12px; border: 1px solid #C9D2CE; background: #FFFFFF; color: #14201C; font-size: 14px; font-weight: 600">Change</button>
+</div>
+<button style="height: 52px; border-radius: 16px; border: 1.5px dashed #A9B4AF; background: #FFFFFF; color: #14201C; font-size: 15px; font-weight: 600">Add another</button>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="font-size: 13px; font-weight: 600; color: #4D5A55">Common picks</div>
+<div style="display: flex; flex-wrap: wrap; gap: 6px">
+<button style="height: 44px; padding: 0 16px; border-radius: 22px; border: 1px solid #C9D2CE; background: #FFFFFF; color: #14201C; font-size: 14px; font-weight: 500">Cycling</button>
+<button style="height: 44px; padding: 0 16px; border-radius: 22px; border: 1px solid #C9D2CE; background: #FFFFFF; color: #14201C; font-size: 14px; font-weight: 500">Strength</button>
+<button style="height: 44px; padding: 0 16px; border-radius: 22px; border: 1px solid #C9D2CE; background: #FFFFFF; color: #14201C; font-size: 14px; font-weight: 500">Swimming</button>
+<button style="height: 44px; padding: 0 16px; border-radius: 22px; border: 1px solid #C9D2CE; background: #FFFFFF; color: #14201C; font-size: 14px; font-weight: 500">Stretching</button>
+<button style="height: 44px; padding: 0 16px; border-radius: 22px; border: 1px solid #C9D2CE; background: #FFFFFF; color: #14201C; font-size: 14px; font-weight: 500">Core</button>
+</div>
+</div>
+
+<div style="flex: 1 1 auto"></div>
+
+<div style="font-size: 13px; line-height: 18px; color: #4D5A55">The five steps: about you, your fixed sessions, what to fit in, when you're busy, your goal. Everything can be changed later.</div>
+
+<div style="display: flex; gap: 8px">
+<button style="flex: 0 0 auto; width: 96px; height: 48px; border-radius: 12px; border: 1px solid #C9D2CE; background: #FFFFFF; color: #14201C; font-size: 15px; font-weight: 600">Back</button>
+<a href="Main.dc.html" style="flex: 1 1 auto; height: 48px; border-radius: 12px; background: {{accent}}; color: #FFFFFF; font-size: 16px; font-weight: 700; text-decoration: none; display: flex; align-items: center; justify-content: center">Next</a>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#0F6B5C","options":["#0F6B5C","#1D4ED8","#B4530B","#7C3AED"]},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+return { accent: this.props.accent || '#0F6B5C' };
+}
+}
+</script>
+</body>
+</html>

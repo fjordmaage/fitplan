@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Check-in after a workout</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700&display=swap">
+<style>
+html,body{margin:0;overflow:hidden}
+button{font-family:inherit;cursor:pointer}
+a{color:#0F6B5C}a:hover{color:#0A4F44}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #FFFFFF; color: #14201C; font-family: 'Schibsted Grotesk', system-ui, sans-serif; display: flex; flex-direction: column; overflow: hidden; padding: 28px 20px 24px 20px; gap: 24px">
+
+<div style="display: flex; flex-direction: column; gap: 2px">
+<div style="font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #4D5A55">Run · 6 km · 41 min</div>
+<h1 style="margin: 0; font-size: 26px; line-height: 30px; font-weight: 700; letter-spacing: -0.01em">Done. How hard was it?</h1>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px">
+<button style="height: 52px; border-radius: 12px; border: 1px solid #C9D2CE; background: #FFFFFF; color: #14201C; font-size: 17px; font-weight: 500">1</button>
+<button style="height: 52px; border-radius: 12px; border: 1px solid #C9D2CE; background: #FFFFFF; color: #14201C; font-size: 17px; font-weight: 500">2</button>
+<button style="height: 52px; border-radius: 12px; border: 1px solid #C9D2CE; background: #FFFFFF; color: #14201C; font-size: 17px; font-weight: 500">3</button>
+<button style="height: 52px; border-radius: 12px; border: 2px solid #14201C; background: #14201C; color: #FFFFFF; font-size: 17px; font-weight: 700">4</button>
+<button style="height: 52px; border-radius: 12px; border: 1px solid #C9D2CE; background: #FFFFFF; color: #14201C; font-size: 17px; font-weight: 500">5</button>
+<button style="height: 52px; border-radius: 12px; border: 1px solid #C9D2CE; background: #FFFFFF; color: #14201C; font-size: 17px; font-weight: 500">6</button>
+<button style="height: 52px; border-radius: 12px; border: 1px solid #C9D2CE; background: #FFFFFF; color: #14201C; font-size: 17px; font-weight: 500">7</button>
+<button style="height: 52px; border-radius: 12px; border: 1px solid #C9D2CE; background: #FFFFFF; color: #14201C; font-size: 17px; font-weight: 500">8</button>
+<button style="height: 52px; border-radius: 12px; border: 1px solid #C9D2CE; background: #FFFFFF; color: #14201C; font-size: 17px; font-weight: 500">9</button>
+<button style="height: 52px; border-radius: 12px; border: 1px solid #C9D2CE; background: #FFFFFF; color: #14201C; font-size: 17px; font-weight: 500">10</button>
+</div>
+<div style="font-size: 14px; color: #4D5A55">4 · Comfortable. You could have kept going for a long time.</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="font-size: 14px; font-weight: 600">Did anything hurt?</div>
+<div style="display: flex; flex-wrap: wrap; gap: 6px">
+<button style="height: 44px; padding: 0 16px; border-radius: 22px; border: 2px solid #14201C; background: #FFFFFF; color: #14201C; font-size: 14px; font-weight: 700">Nothing</button>
+<button style="height: 44px; padding: 0 16px; border-radius: 22px; border: 1px solid #C9D2CE; background: #FFFFFF; color: #14201C; font-size: 14px; font-weight: 500">Legs</button>
+<button style="height: 44px; padding: 0 16px; border-radius: 22px; border: 1px solid #C9D2CE; background: #FFFFFF; color: #14201C; font-size: 14px; font-weight: 500">Knees</button>
+<button style="height: 44px; padding: 0 16px; border-radius: 22px; border: 1px solid #C9D2CE; background: #FFFFFF; color: #14201C; font-size: 14px; font-weight: 500">Back</button>
+<button style="height: 44px; padding: 0 16px; border-radius: 22px; border: 1px solid #C9D2CE; background: #FFFFFF; color: #14201C; font-size: 14px; font-weight: 500">Somewhere else</button>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="note" style="font-size: 14px; font-weight: 600">Note to yourself (optional)</label>
+<input id="note" type="text" placeholder="Windy, new shoes, felt great…" style="height: 46px; box-sizing: border-box; border-radius: 12px; border: 1px solid #C9D2CE; padding: 0 12px; font-size: 15px; font-family: inherit; color: #14201C; background: #FFFFFF">
+</div>
+
+<div style="font-size: 14px; line-height: 20px; background: #EDF1EF; border-radius: 12px; padding: 12px 14px">That matches what the app expected, so the plan stays as it is. Next up: back routine, right now if you like.</div>
+
+<div style="flex: 1 1 auto"></div>
+
+<a href="Main.dc.html" style="height: 48px; border-radius: 12px; background: {{accent}}; color: #FFFFFF; font-size: 16px; font-weight: 700; text-decoration: none; display: flex; align-items: center; justify-content: center">Save</a>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#0F6B5C","options":["#0F6B5C","#1D4ED8","#B4530B","#7C3AED"]},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+return { accent: this.props.accent || '#0F6B5C' };
+}
+}
+</script>
+</body>
+</html>
