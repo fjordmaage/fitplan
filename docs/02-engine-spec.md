@@ -11,9 +11,7 @@ Recovery per body region feeding a scheduler has no open reference we found. Tha
 
 ## Honest limits
 
-These models are useful heuristics, not predictions. Session-effort load is, to our knowledge, well validated across many sports. The 7-day vs 28-day ratio is disputed as an injury predictor, so use it only as a soft warning. Recovery times per region below are starting guesses. Design the engine so that the user's own check-ins correct it over time, and so that every number is a named, documented parameter in one place.
-
-**Before coding, verify the science:** find and cite the primary sources for each rule (session-effort load, recovery timelines by tissue, the weekly load-increase heuristic, sequencing of strength and endurance work), record them in `docs/engine-sources.md`, and flag any rule below that the sources do not support.
+These models are useful heuristics, not predictions. The source check is done: see `docs/engine-sources.md` (7 October 2026) for what each rule rests on. Two rules from the original draft did not survive it: the 7-day vs 28-day ratio carries no evidence as an injury predictor and is now purely descriptive ("less / about / more than your usual"), and the ~10%-per-week increase rule has no support — the evidenced risk is a single session far beyond anything recent, so the guard is per-session (`BIG_JUMP`). Recovery times per region are grounded estimates, not measurements. Design the engine so that the user's own check-ins correct it over time, and so that every number is a named, documented parameter in one place (`params.ts`).
 
 ## Inputs
 
@@ -30,7 +28,7 @@ These models are useful heuristics, not predictions. Session-effort load is, to 
 3. **Fatigue per region** rises by the region's share of each session's load and decays over time. Start with exponential decay with a per-region half-life. Starting half-lives are guesses to be sourced; connective tissue (fingers) recovers slower than large muscles.
 4. **Readiness per region** is a 0–1 value derived from fatigue relative to what that user usually carries. "Ready" above a threshold; otherwise report the time it will cross it ("Ready by tomorrow evening").
 5. **Check-in correction.** A before-check-in ("Sore" where the model says "Ready") overrides the estimate now and nudges that region's personal recovery rate a little. One check-in must not swing parameters: use slow learning, and cap the effect on the plan to the next one or two sessions.
-6. **Overall load** over 7 days against the user's own typical 28-day level, shown as "less than / about / more than your usual". Training amount shifts the target: Steady holds it; Build raises it gradually (the common rule of thumb is no more than about a tenth per week; treat as a heuristic and source it); Recover and Lighter reduce it.
+6. **Overall load** over 7 days against the user's own typical 28-day level, shown as "less than / about / more than your usual" — a description, never an injury warning (see sources, item 2). Training amount shifts the target: Steady holds it; Build raises it gradually as a pacing choice; Recover and Lighter reduce it. The real safety guard is per-session: a planned dose far beyond anything in the last 30 days rates OK at best, with reason `BIG_JUMP` (sources, item 3).
 
 ## Rating function
 

@@ -13,9 +13,12 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "print-plan": "tsx scripts/print-plan.ts"
   },
   "devDependencies": {
+    "fast-check": "^4.10.2",
+    "tsx": "^4.23.15",
     "vitest": "^5.0.3"
   }
 }

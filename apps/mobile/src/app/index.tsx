@@ -1,7 +1,21 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { addDays, dayRange, weekday, type PlannedItem } from '@fitplan/engine';
+import {
+  buildToday,
+  entriesFor,
+  firstToday,
+  headingFor,
+  isoWeek,
+  longDay,
+  mondayOf,
+  ratingAt,
+  ratingFor,
+  type DayEntry,
+} from '@/data/plan';
+import { adviceSentence, shortDay as sentenceShortDay } from '@/i18n';
 import { metrics, useTheme } from '@/theme';
 import {
   AdviceBox,
@@ -13,29 +27,50 @@ import {
   SectionHeading,
   TimelineCard,
   TimelineRow,
-  type ActivityKind,
   type CalendarWeek,
+  type SlotBar,
 } from '@/ui';
 
 /**
- * Plan, the home screen. Matched against docs/design/png/01-plan.png and
- * 02-plan-dark.png.
- *
- * The content below is the mockup's own, held here so the layout can be
- * compared against the reference images. The engine replaces it in stage 1 and
- * storage in stage 2; nothing here decides anything.
+ * Plan, the home screen, fed by the real engine over the demo week (KL's
+ * routine). Storage replaces the demo inputs in stage 2; Move/Swap sheets
+ * arrive there too.
  */
 export default function Plan() {
   const { colors } = useTheme();
+  const model = useMemo(() => buildToday(), []);
   const [expanded, setExpanded] = useState(false);
-  const [selected, setSelected] = useState<string | null>('run-today');
+  const [selected, setSelected] = useState<PlannedItem | null>(
+    () => firstActionable(model) ?? null,
+  );
+
+  const weeks = useMemo(
+    () => calendarWeeks(model, expanded ? 6 : 2, selected),
+    [model, expanded, selected],
+  );
+  const timelineDays = useMemo(
+    () => dayRange(model.today, 14).filter((day, index) => index < 14),
+    [model],
+  );
+
+  const advice = useMemo(() => {
+    const first = firstToday(model);
+    if (!first) return 'Nothing planned today. Enjoy the rest.';
+    const rating = first.item
+      ? ratingFor(model, first.item)
+      : ratingAt(model, first.exerciseId, first.day, first.slot);
+    return adviceSentence(rating?.reasons ?? [], {
+      names: model.names,
+      shortDay: sentenceShortDay,
+    });
+  }, [model]);
 
   return (
     <SafeAreaView style={[styles.root, { backgroundColor: colors.ground }]} edges={['top']}>
       <View style={styles.header}>
         <ScreenTitle
           overline="Today"
-          title="Tuesday 6 October"
+          title={longDay(model.today)}
           action={{ icon: 'settings', label: 'Goals and settings' }}
         />
         <Calendar
@@ -50,81 +85,33 @@ export default function Plan() {
         contentContainerStyle={styles.timelineContent}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.group}>
-          <SectionHeading>Today</SectionHeading>
-          <AdviceBox>
-            Your legs are fresh, and a run lets your forearms rest before tomorrow’s climb.
-          </AdviceBox>
-
-          <TimelineRow time="Afternoon">
-            <TimelineCard
-              kind="flexible"
-              title="Run · 6 km"
-              subtitle="40 min · easy pace"
-              selected={selected === 'run-today'}
-              onPress={() => setSelected(selected === 'run-today' ? null : 'run-today')}
-            />
-            {selected === 'run-today' ? (
-              <>
-                <Button label="Start" variant="primary" />
-                <View style={styles.pair}>
-                  <Button label="Move" style={styles.half} />
-                  <Button label="Swap" style={styles.half} />
-                </View>
-              </>
-            ) : null}
-          </TimelineRow>
-
-          <TimelineRow>
-            <TimelineCard
-              kind="flexible"
-              title="Back routine"
-              subtitle="15 min · right after the run"
-              selected={selected === 'back-today'}
-              onPress={() => setSelected(selected === 'back-today' ? null : 'back-today')}
-            />
-          </TimelineRow>
-        </View>
-
-        <Day heading="Tomorrow · Wed 7">
-          <TimelineRow time="17:00">
-            <TimelineCard kind="fixed" title="Climbing gym" subtitle="Until 19:00" />
-          </TimelineRow>
-        </Day>
-
-        <Day heading="Thu 8 October">
-          <TimelineRow time="Evening">
-            <TimelineCard kind="busy" title="Busy" subtitle="Nothing planned around it" />
-          </TimelineRow>
-        </Day>
-
-        <Day heading="Fri 9 October">
-          <TimelineRow time="Afternoon">
-            <TimelineCard
-              kind="flexible"
-              title="Run · 6 km"
-              subtitle="40 min · easy pace"
-              selected={selected === 'run-fri'}
-              onPress={() => setSelected(selected === 'run-fri' ? null : 'run-fri')}
-            />
-          </TimelineRow>
-        </Day>
-
-        <Day heading="Sat 10 October">
-          <TimelineRow time="Morning">
-            <TimelineCard
-              kind="flexible"
-              title="Climbing gym"
-              subtitle="2 h · open session"
-              selected={selected === 'climb-sat'}
-              onPress={() => setSelected(selected === 'climb-sat' ? null : 'climb-sat')}
-            />
-          </TimelineRow>
-        </Day>
-
-        <Day heading="Sun 11 October">
-          <RestDayLine />
-        </Day>
+        {timelineDays.map((day) => {
+          const entries = entriesFor(model, day);
+          return (
+            <View key={day} style={styles.group}>
+              <SectionHeading>{headingFor(model, day)}</SectionHeading>
+              {day === model.today && entries.length > 0 ? <AdviceBox>{advice}</AdviceBox> : null}
+              {entries.length === 0 ? (
+                <RestDayLine />
+              ) : (
+                entries.map((entry, index) => (
+                  <Entry
+                    key={`${entry.kind}-${entry.exerciseId ?? entry.slot}-${index}`}
+                    entry={entry}
+                    showTime={index === 0 || entries[index - 1]?.slot !== entry.slot}
+                    today={day === model.today}
+                    selected={entry.item != null && itemsEqual(entry.item, selected)}
+                    onSelect={() =>
+                      setSelected(
+                        entry.item && !itemsEqual(entry.item, selected) ? entry.item : null,
+                      )
+                    }
+                  />
+                ))
+              )}
+            </View>
+          );
+        })}
       </ScrollView>
 
       <BottomBar current="plan" />
@@ -132,62 +119,90 @@ export default function Plan() {
   );
 }
 
-function Day({ heading, children }: { heading: string; children: React.ReactNode }) {
+function Entry({
+  entry,
+  showTime,
+  today,
+  selected,
+  onSelect,
+}: {
+  entry: DayEntry;
+  showTime: boolean;
+  today: boolean;
+  selected: boolean;
+  onSelect: () => void;
+}) {
+  const slotWord = entry.slot.charAt(0).toUpperCase() + entry.slot.slice(1);
+  const timeLabel = showTime ? (entry.time ?? slotWord) : undefined;
   return (
-    <View style={styles.group}>
-      <SectionHeading>{heading}</SectionHeading>
-      {children}
-    </View>
+    <TimelineRow {...(timeLabel ? { time: timeLabel } : {})}>
+      <TimelineCard
+        kind={entry.kind}
+        title={entry.title}
+        subtitle={entry.subtitle}
+        selected={selected}
+        {...(entry.item ? { onPress: onSelect } : {})}
+      />
+      {selected ? (
+        <>
+          {today ? <Button label="Start" variant="primary" /> : null}
+          <View style={styles.pair}>
+            <Button label="Move" style={styles.half} />
+            <Button label="Swap" style={styles.half} />
+          </View>
+        </>
+      ) : null}
+    </TimelineRow>
   );
 }
 
-const bars = (...kinds: readonly (readonly ActivityKind[])[]) => kinds;
+function firstActionable(model: ReturnType<typeof buildToday>): PlannedItem | undefined {
+  return model.result.plan.items.find((item) => item.day === model.today);
+}
 
-const weeks: readonly CalendarWeek[] = [
-  {
-    week: 41,
-    days: [
-      {
-        date: 5,
-        slots: bars([], [], ['fixed']),
-        isPast: true,
-        accessibilityLabel: 'Mon 5 October',
-      },
-      {
-        date: 6,
-        slots: bars([], ['flexible', 'flexible'], []),
-        isToday: true,
-        selectedBar: [1, 0],
-        accessibilityLabel: 'Tue 6 October',
-      },
-      { date: 7, slots: bars([], [], ['fixed']), accessibilityLabel: 'Wed 7 October' },
-      { date: 8, slots: bars([], [], ['busy']), accessibilityLabel: 'Thu 8 October' },
-      { date: 9, slots: bars([], ['flexible'], []), accessibilityLabel: 'Fri 9 October' },
-      { date: 10, slots: bars(['flexible'], [], []), accessibilityLabel: 'Sat 10 October' },
-      { date: 11, slots: bars([], [], []), accessibilityLabel: 'Sun 11 October' },
-    ],
-  },
-  {
-    week: 42,
-    days: [
-      { date: 12, slots: bars([], [], ['fixed']), accessibilityLabel: 'Mon 12 October' },
-      {
-        date: 13,
-        slots: bars([], ['flexible', 'flexible'], []),
-        accessibilityLabel: 'Tue 13 October',
-      },
-      { date: 14, slots: bars([], [], ['fixed']), accessibilityLabel: 'Wed 14 October' },
-      { date: 15, slots: bars([], [], []), accessibilityLabel: 'Thu 15 October' },
-      { date: 16, slots: bars(['fixed'], [], []), accessibilityLabel: 'Fri 16 October' },
-      { date: 17, slots: bars(['flexible'], [], []), accessibilityLabel: 'Sat 17 October' },
-      {
-        date: 18,
-        slots: bars(['busy'], ['busy'], ['busy']),
-        accessibilityLabel: 'Sun 18 October',
-      },
-    ],
-  },
-];
+function itemsEqual(a: PlannedItem | null | undefined, b: PlannedItem | null | undefined): boolean {
+  return (
+    a != null && b != null && a.exerciseId === b.exerciseId && a.day === b.day && a.slot === b.slot
+  );
+}
+
+function calendarWeeks(
+  model: ReturnType<typeof buildToday>,
+  count: number,
+  selected: PlannedItem | null,
+): CalendarWeek[] {
+  const monday = mondayOf(model.today);
+  const weeks: CalendarWeek[] = [];
+  for (let w = 0; w < count; w += 1) {
+    const start = addDays(monday, w * 7);
+    weeks.push({
+      week: isoWeek(start),
+      days: dayRange(start, 7).map((day) => {
+        const entries = entriesFor(model, day);
+        const slots: SlotBar[][] = [[], [], []];
+        let selectedBar: readonly [number, number] | undefined;
+        for (const entry of entries) {
+          const slotIndex = ['morning', 'afternoon', 'evening'].indexOf(entry.slot);
+          const slot = slots[slotIndex];
+          if (!slot) continue;
+          if (entry.item && itemsEqual(entry.item, selected)) {
+            selectedBar = [slotIndex, slot.length];
+          }
+          slot.push(entry.kind);
+        }
+        return {
+          date: Number(day.split('-')[2]),
+          slots,
+          isToday: day === model.today,
+          isPast: day < model.today,
+          ...(selectedBar ? { selectedBar } : {}),
+          accessibilityLabel: longDay(day),
+        };
+      }),
+    });
+  }
+  return weeks;
+}
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
