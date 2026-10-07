@@ -13,6 +13,8 @@ import {
   rate,
   weekday,
   type EngineInputs,
+  type Plan,
+  type PlanChange,
   type PlannedItem,
   type PlanResult,
   type Slot,
@@ -46,6 +48,48 @@ export function buildToday(): TodayModel {
     result,
     names: new Map(inputs.exercises.map((e) => [e.id, e.name])),
     today: now.day,
+  };
+}
+
+/**
+ * Apply a user move: pin the item where the user put it (locked, like the
+ * move sheet's save), replan everything else around it, and report every
+ * change. Returns the new model plus the change list for the plan-updated
+ * card. Stage 1 keeps this in memory; stage 2 stores it.
+ */
+export function applyMove(
+  model: TodayModel,
+  item: PlannedItem,
+  to: { day: string; slot: Slot; lock: boolean },
+): { model: TodayModel; changes: readonly PlanChange[] } {
+  const previous = model.result.plan;
+  const withoutItem: Plan = {
+    items: previous.items.filter(
+      (i) => !(i.exerciseId === item.exerciseId && i.day === item.day && i.slot === item.slot),
+    ),
+  };
+  const moved: PlannedItem = {
+    ...item,
+    day: to.day,
+    slot: to.slot,
+    locked: true,
+    tentative: false,
+  };
+  const seeded: Plan = { items: [...withoutItem.items, moved] };
+  const result = plan(model.inputs, seeded);
+  const userChange: PlanChange = {
+    exerciseId: item.exerciseId,
+    kind: 'moved',
+    from: { day: item.day, slot: item.slot },
+    to: { day: to.day, slot: to.slot },
+    reasons: [{ code: 'USER_MOVED' }],
+  };
+  const knockOns = result.changes.filter(
+    (c) => !(c.exerciseId === item.exerciseId && c.kind === 'moved'),
+  );
+  return {
+    model: { ...model, result },
+    changes: [userChange, ...knockOns],
   };
 }
 

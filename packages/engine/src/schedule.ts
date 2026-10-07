@@ -285,17 +285,26 @@ export function diff(previous: Plan, next: Plan, inputs: EngineInputs): PlanChan
     const added = after.filter((i) => !beforeKeys.has(keyOf(i)));
 
     // Pair removed+added as moves, in deterministic order.
+    const pairedAfter = inputs.exercises.find((e) => e.id === exerciseId)?.pairAfterExerciseId;
     const moves = Math.min(removed.length, added.length);
     for (let i = 0; i < moves; i += 1) {
       const from = removed[i];
       const to = added[i];
       if (!from || !to) break;
+      // A paired exercise that landed next to its partner moved because of it.
+      const movedWithPartner =
+        pairedAfter != null &&
+        nextItems.some(
+          (item) => item.exerciseId === pairedAfter && item.day === to.day && item.slot === to.slot,
+        );
       changes.push({
         exerciseId,
         kind: 'moved',
         from: { day: from.day, slot: from.slot },
         to: { day: to.day, slot: to.slot },
-        reasons: [{ code: 'BETTER_SPACING' }],
+        reasons: movedWithPartner
+          ? [{ code: 'PAIRED_WITH', exerciseId: pairedAfter }]
+          : [{ code: 'BETTER_SPACING' }],
       });
     }
     for (const item of removed.slice(moves)) {

@@ -68,12 +68,31 @@ export function adviceSentence(reasons: readonly Reason[], ctx: SentenceContext)
 
 export function changeSentence(change: PlanChange, ctx: SentenceContext): string {
   const name = ctx.names.get(change.exerciseId) ?? 'A session';
+  const why = changeWhy(change, ctx);
   switch (change.kind) {
     case 'moved':
-      return `${name} moved to ${ctx.shortDay(change.to!.day)}, ${slotWords[change.to!.slot]}.`;
+      return `${name} moved to ${ctx.shortDay(change.to!.day)}, ${slotWords[change.to!.slot]}${why}.`;
     case 'added':
-      return `${name} was added on ${ctx.shortDay(change.to!.day)}.`;
+      return `${name} was added on ${ctx.shortDay(change.to!.day)}${why}.`;
     case 'removed':
-      return `${name} on ${ctx.shortDay(change.from!.day)} was taken out.`;
+      return `${name} on ${ctx.shortDay(change.from!.day)} was taken out${why}.`;
+  }
+}
+
+/** The knock-on clause: ", because ..." from the change's first reason. */
+function changeWhy(change: PlanChange, ctx: SentenceContext): string {
+  const reason = change.reasons[0];
+  if (!reason) return '';
+  switch (reason.code) {
+    case 'PAIRED_WITH':
+      return `, because it works best right after ${ctx.names.get(reason.exerciseId) ?? 'its partner'}`;
+    case 'REGION_NOT_READY':
+      return ', to give your body time to recover';
+    case 'BLOCK_ADDED':
+      return ', because you are busy then';
+    case 'ANCHOR_CANCELLED':
+      return ', after the cancelled session';
+    default:
+      return '';
   }
 }

@@ -2,8 +2,9 @@ import { useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { addDays, dayRange, weekday, type PlannedItem } from '@fitplan/engine';
+import { addDays, dayRange, type PlannedItem } from '@fitplan/engine';
 import {
+  applyMove,
   buildToday,
   entriesFor,
   firstToday,
@@ -13,15 +14,19 @@ import {
   mondayOf,
   ratingAt,
   ratingFor,
+  shortDay,
   type DayEntry,
+  type TodayModel,
 } from '@/data/plan';
-import { adviceSentence, shortDay as sentenceShortDay } from '@/i18n';
+import { adviceSentence, changeSentence, reasonSentence } from '@/i18n';
 import { metrics, useTheme } from '@/theme';
 import {
   AdviceBox,
   BottomBar,
   Button,
   Calendar,
+  MoveSheet,
+  PlanUpdatedCard,
   RestDayLine,
   ScreenTitle,
   SectionHeading,
@@ -30,6 +35,7 @@ import {
   type CalendarWeek,
   type SlotBar,
 } from '@/ui';
+import type { PlanChange, Rating } from '@fitplan/engine';
 
 /**
  * Plan, the home screen, fed by the real engine over the demo week (KL's
@@ -38,11 +44,17 @@ import {
  */
 export default function Plan() {
   const { colors } = useTheme();
-  const model = useMemo(() => buildToday(), []);
+  const initial = useMemo(() => buildToday(), []);
+  const [model, setModel] = useState<TodayModel>(initial);
+  const [undoStack, setUndoStack] = useState<TodayModel[]>([]);
+  const [updateCard, setUpdateCard] = useState<readonly PlanChange[] | null>(null);
+  const [moving, setMoving] = useState<PlannedItem | null>(null);
   const [expanded, setExpanded] = useState(false);
   const [selected, setSelected] = useState<PlannedItem | null>(
-    () => firstActionable(model) ?? null,
+    () => firstActionable(initial) ?? null,
   );
+
+  const sentenceCtx = useMemo(() => ({ names: model.names, shortDay }), [model]);
 
   const weeks = useMemo(
     () => calendarWeeks(model, expanded ? 6 : 2, selected),
@@ -59,11 +71,8 @@ export default function Plan() {
     const rating = first.item
       ? ratingFor(model, first.item)
       : ratingAt(model, first.exerciseId, first.day, first.slot);
-    return adviceSentence(rating?.reasons ?? [], {
-      names: model.names,
-      shortDay: sentenceShortDay,
-    });
-  }, [model]);
+    return adviceSentence(rating?.reasons ?? [], sentenceCtx);
+  }, [model, sentenceCtx]);
 
   return (
     <SafeAreaView style={[styles.root, { backgroundColor: colors.ground }]} edges={['top']}>
@@ -106,6 +115,7 @@ export default function Plan() {
                         entry.item && !itemsEqual(entry.item, selected) ? entry.item : null,
                       )
                     }
+                    onMove={() => entry.item && setMoving(entry.item)}
                   />
                 ))
               )}
@@ -113,6 +123,51 @@ export default function Plan() {
           );
         })}
       </ScrollView>
+
+      {updateCard ? (
+        <PlanUpdatedCard
+          body={updateCard.map((c) => changeSentence(c, sentenceCtx)).join(' ')}
+          onUndo={() => {
+            const last = undoStack[undoStack.length - 1];
+            if (last) {
+              setModel(last);
+              setUndoStack((stack) => stack.slice(0, -1));
+            }
+            setUpdateCard(null);
+          }}
+          onAccept={() => setUpdateCard(null)}
+        />
+      ) : null}
+
+      {moving ? (
+        <MoveSheet
+          visible
+          title={model.names.get(moving.exerciseId) ?? ''}
+          subtitle={`Now: ${moving.day === model.today ? 'today' : shortDay(moving.day)}, ${moving.slot}`}
+          today={model.today}
+          current={{ day: moving.day, slot: moving.slot }}
+          rateDay={(day, slot) => {
+            const exercise = model.inputs.exercises.find((e) => e.id === moving.exerciseId);
+            if (!exercise) return undefined;
+            return ratingAt({ ...model }, moving.exerciseId, day, slot);
+          }}
+          reasonLine={(rating: Rating | undefined) =>
+            rating?.reasons[0]
+              ? reasonSentence(rating.reasons[0], sentenceCtx)
+              : 'No planned or busy time is in the way.'
+          }
+          shortDay={shortDay}
+          onSave={(day, slot, lock) => {
+            const { model: next, changes } = applyMove(model, moving, { day, slot, lock });
+            setUndoStack((stack) => [...stack, model]);
+            setModel(next);
+            setSelected(null);
+            setMoving(null);
+            setUpdateCard(changes);
+          }}
+          onClose={() => setMoving(null)}
+        />
+      ) : null}
 
       <BottomBar current="plan" />
     </SafeAreaView>
@@ -125,12 +180,14 @@ function Entry({
   today,
   selected,
   onSelect,
+  onMove,
 }: {
   entry: DayEntry;
   showTime: boolean;
   today: boolean;
   selected: boolean;
   onSelect: () => void;
+  onMove: () => void;
 }) {
   const slotWord = entry.slot.charAt(0).toUpperCase() + entry.slot.slice(1);
   const timeLabel = showTime ? (entry.time ?? slotWord) : undefined;
@@ -147,7 +204,7 @@ function Entry({
         <>
           {today ? <Button label="Start" variant="primary" /> : null}
           <View style={styles.pair}>
-            <Button label="Move" style={styles.half} />
+            <Button label="Move" style={styles.half} onPress={onMove} />
             <Button label="Swap" style={styles.half} />
           </View>
         </>
