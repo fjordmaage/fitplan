@@ -95,6 +95,10 @@ npm run mobile android
 The first build takes several minutes because Gradle downloads its toolchain.
 Later builds take well under a minute. The app installs itself and starts.
 
+`tools/env.sh` sets `ORG_GRADLE_PROJECT_reactNativeArchitectures=arm64-v8a`, so
+development builds compile native code only for the phone's own architecture.
+That is the difference between half a minute and ten minutes per build.
+
 While it is running, `npm run mobile start` serves the JavaScript, so saving a
 file reloads the app without rebuilding. You only need to build again when a
 native dependency changes.
@@ -124,10 +128,10 @@ need a *signed release APK*.
 2. Keep the keystore and its passwords **out of the repository**. `.gitignore`
    already excludes `*.keystore` and `local.properties`.
 
-3. Build:
+3. Build **with every architecture**, not just the development one:
 
    ```bash
-   cd apps/mobile/android && ./gradlew assembleRelease
+   cd apps/mobile/android && ORG_GRADLE_PROJECT_reactNativeArchitectures=arm64-v8a,armeabi-v7a,x86_64 ./gradlew assembleRelease
    ```
 
    The APK lands in `apps/mobile/android/app/build/outputs/apk/release/`.

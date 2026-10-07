@@ -1,313 +1,209 @@
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, useColorScheme, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { ENGINE_VERSION, sessionLoad } from '@fitplan/engine';
+import { metrics, useTheme } from '@/theme';
 import {
-  accentPresets,
-  flexibleFill,
-  layout,
-  ratingWord,
-  ThemeProvider,
-  type,
-  useTheme,
-  type RatingLevel,
-  type ThemeName,
-} from '@/theme';
-
-type Preference = 'phone' | ThemeName;
-
-const preferences: { value: Preference; label: string }[] = [
-  { value: 'phone', label: 'Same as phone' },
-  { value: 'light', label: 'Light' },
-  { value: 'dark', label: 'Dark' },
-];
+  AdviceBox,
+  BottomBar,
+  Button,
+  Calendar,
+  RestDayLine,
+  ScreenTitle,
+  SectionHeading,
+  TimelineCard,
+  TimelineRow,
+  type ActivityKind,
+  type CalendarWeek,
+} from '@/ui';
 
 /**
- * Stage 0 placeholder.
+ * Plan, the home screen. Matched against docs/design/png/01-plan.png and
+ * 02-plan-dark.png.
  *
- * Its job is to prove, on the phone, that five things work: the bundled font,
- * the colour tokens in both themes, the shape-and-fill encoding, the accent
- * being a parameter rather than a constant, and the engine package being
- * importable from the app. Nothing here survives stage 2.
+ * The content below is the mockup's own, held here so the layout can be
+ * compared against the reference images. The engine replaces it in stage 1 and
+ * storage in stage 2; nothing here decides anything.
  */
-export default function Placeholder() {
-  const phone = useColorScheme();
-  const [preference, setPreference] = useState<Preference>('phone');
-  const [accentIndex, setAccentIndex] = useState(0);
-
-  const name: ThemeName =
-    preference === 'phone' ? (phone === 'dark' ? 'dark' : 'light') : preference;
-  const accent = accentPresets[name][accentIndex] ?? accentPresets[name][0];
+export default function Plan() {
+  const { colors } = useTheme();
+  const [expanded, setExpanded] = useState(false);
+  const [selected, setSelected] = useState<string | null>('run-today');
 
   return (
-    <ThemeProvider preference={name} accent={accent}>
-      <Body
-        preference={preference}
-        onPreference={setPreference}
-        accentIndex={accentIndex}
-        onAccentIndex={setAccentIndex}
-      />
-    </ThemeProvider>
-  );
-}
+    <SafeAreaView style={[styles.root, { backgroundColor: colors.ground }]} edges={['top']}>
+      <View style={styles.header}>
+        <ScreenTitle
+          overline="Today"
+          title="Tuesday 6 October"
+          action={{ icon: 'settings', label: 'Goals and settings' }}
+        />
+        <Calendar
+          weeks={weeks}
+          expanded={expanded}
+          onToggleExpanded={() => setExpanded((value) => !value)}
+        />
+      </View>
 
-function Body({
-  preference,
-  onPreference,
-  accentIndex,
-  onAccentIndex,
-}: {
-  preference: Preference;
-  onPreference: (value: Preference) => void;
-  accentIndex: number;
-  onAccentIndex: (value: number) => void;
-}) {
-  const { name, colors } = useTheme();
+      <ScrollView
+        style={styles.timeline}
+        contentContainerStyle={styles.timelineContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.group}>
+          <SectionHeading>Today</SectionHeading>
+          <AdviceBox>
+            Your legs are fresh, and a run lets your forearms rest before tomorrow’s climb.
+          </AdviceBox>
 
-  return (
-    <SafeAreaView
-      style={[styles.root, { backgroundColor: colors.ground }]}
-      edges={['top', 'bottom']}
-    >
-      <ScrollView contentContainerStyle={styles.scroll}>
-        <Text style={[type.overline, { color: colors.mutedText }]}>Stage 0</Text>
-        <Text style={[type.screenTitle, styles.title, { color: colors.ink }]}>fitplan</Text>
-        <Text style={[type.advice, { color: colors.mutedText }]}>
-          Foundations only. No plan yet, no engine yet. This screen is here so you can check the
-          font and the colours on your own phone.
-        </Text>
+          <TimelineRow time="Afternoon">
+            <TimelineCard
+              kind="flexible"
+              title="Run · 6 km"
+              subtitle="40 min · easy pace"
+              selected={selected === 'run-today'}
+              onPress={() => setSelected(selected === 'run-today' ? null : 'run-today')}
+            />
+            {selected === 'run-today' ? (
+              <>
+                <Button label="Start" variant="primary" />
+                <View style={styles.pair}>
+                  <Button label="Move" style={styles.half} />
+                  <Button label="Swap" style={styles.half} />
+                </View>
+              </>
+            ) : null}
+          </TimelineRow>
 
-        <Card title="Theme">
-          <Text style={[type.secondary, styles.cardIntro, { color: colors.mutedText }]}>
-            Showing {name}. Settings will offer these same three choices.
-          </Text>
-          <View style={styles.choiceRow}>
-            {preferences.map((option) => (
-              <Choice
-                key={option.value}
-                label={option.label}
-                selected={preference === option.value}
-                onPress={() => onPreference(option.value)}
-              />
-            ))}
-          </View>
-          <View style={styles.swatchRow}>
-            <Swatch label="Ground" color={colors.ground} border={colors.hairline} />
-            <Swatch label="Surface" color={colors.surface} border={colors.hairline} />
-            <Swatch label="Ink" color={colors.ink} border={colors.hairline} />
-            <Swatch label="Accent" color={colors.accent} border={colors.hairline} />
-          </View>
-        </Card>
+          <TimelineRow>
+            <TimelineCard
+              kind="flexible"
+              title="Back routine"
+              subtitle="15 min · right after the run"
+              selected={selected === 'back-today'}
+              onPress={() => setSelected(selected === 'back-today' ? null : 'back-today')}
+            />
+          </TimelineRow>
+        </View>
 
-        <Card title="Type">
-          <Text style={[type.cardTitle, { color: colors.ink }]}>Schibsted Grotesk, bold 16</Text>
-          <Text style={[type.body, { color: colors.ink }]}>Row label, semibold 15</Text>
-          <Text style={[type.advice, { color: colors.ink }]}>Advice text, regular 14 on 20</Text>
-          <Text style={[type.secondary, { color: colors.mutedText }]}>Secondary, regular 13</Text>
-          <Text style={[type.guideCountdown, { color: colors.ink }]}>12:00</Text>
-          <Text style={[type.secondary, { color: colors.mutedText }]}>
-            The countdown uses tabular numerals, so it must not jiggle as it counts down.
-          </Text>
-        </Card>
+        <Day heading="Tomorrow · Wed 7">
+          <TimelineRow time="17:00">
+            <TimelineCard kind="fixed" title="Climbing gym" subtitle="Until 19:00" />
+          </TimelineRow>
+        </Day>
 
-        <Card title="Ratings">
-          <Text style={[type.secondary, styles.cardIntro, { color: colors.mutedText }]}>
-            Each one always carries its word, so colour is never the only signal.
-          </Text>
-          <View style={styles.chipRow}>
-            {(['good', 'ok', 'avoid'] as RatingLevel[]).map((level) => (
-              <View
-                key={level}
-                accessibilityRole="text"
-                accessibilityLabel={ratingWord[level]}
-                style={[styles.chip, { backgroundColor: colors.rating[level].background }]}
-              >
-                <Text style={[type.smallLabel, { color: colors.rating[level].text }]}>
-                  {ratingWord[level]}
-                </Text>
-              </View>
-            ))}
-          </View>
-        </Card>
+        <Day heading="Thu 8 October">
+          <TimelineRow time="Evening">
+            <TimelineCard kind="busy" title="Busy" subtitle="Nothing planned around it" />
+          </TimelineRow>
+        </Day>
 
-        <Card title="The encoding">
-          <Text style={[type.secondary, styles.cardIntro, { color: colors.mutedText }]}>
-            Shape and fill carry the meaning before colour does.
-          </Text>
-          <Bar label="Fixed" style={{ backgroundColor: colors.ink }} />
-          <Bar
-            label="Flexible"
-            style={{
-              backgroundColor: flexibleFill(name, colors.accent),
-              borderWidth: 1.5,
-              borderColor: colors.accent,
-            }}
-          />
-          <Bar
-            label="Day may change"
-            style={{ borderWidth: 1.5, borderColor: colors.accent, borderStyle: 'dashed' }}
-          />
-          <Bar label="Busy" style={{ backgroundColor: colors.busyHatchGround }} />
-          <Bar label="Empty slot" style={{ backgroundColor: colors.quietFill }} />
-          <Text style={[type.secondary, { color: colors.mutedText }]}>
-            Busy is drawn flat here. Its diagonal hatch arrives with the calendar in stage 2.
-          </Text>
-        </Card>
+        <Day heading="Fri 9 October">
+          <TimelineRow time="Afternoon">
+            <TimelineCard
+              kind="flexible"
+              title="Run · 6 km"
+              subtitle="40 min · easy pace"
+              selected={selected === 'run-fri'}
+              onPress={() => setSelected(selected === 'run-fri' ? null : 'run-fri')}
+            />
+          </TimelineRow>
+        </Day>
 
-        <Card title="Accent">
-          <Text style={[type.secondary, styles.cardIntro, { color: colors.mutedText }]}>
-            Tap one. Everything accented above follows it.
-          </Text>
-          <View style={styles.swatchRow}>
-            {accentPresets[name].map((preset, index) => (
-              <Pressable
-                key={preset}
-                accessibilityRole="button"
-                accessibilityLabel={`Accent ${preset}`}
-                accessibilityState={{ selected: index === accentIndex }}
-                onPress={() => onAccentIndex(index)}
-                style={styles.swatch}
-              >
-                <View
-                  style={[
-                    styles.swatchChip,
-                    {
-                      backgroundColor: preset,
-                      borderColor: index === accentIndex ? colors.ink : colors.hairline,
-                      borderWidth: index === accentIndex ? 2 : 1,
-                    },
-                  ]}
-                />
-                <Text style={[type.smallLabel, styles.swatchLabel, { color: colors.mutedText }]}>
-                  {preset}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-        </Card>
+        <Day heading="Sat 10 October">
+          <TimelineRow time="Morning">
+            <TimelineCard
+              kind="flexible"
+              title="Climbing gym"
+              subtitle="2 h · open session"
+              selected={selected === 'climb-sat'}
+              onPress={() => setSelected(selected === 'climb-sat' ? null : 'climb-sat')}
+            />
+          </TimelineRow>
+        </Day>
 
-        <Card title="Engine">
-          <Text style={[type.secondary, { color: colors.mutedText }]}>
-            Version {ENGINE_VERSION}, imported from the engine package. A 45 minute session at
-            effort 6 scores {sessionLoad(45, 6)}. That is the only thing it knows how to do so far.
-          </Text>
-        </Card>
+        <Day heading="Sun 11 October">
+          <RestDayLine />
+        </Day>
       </ScrollView>
+
+      <BottomBar current="plan" />
     </SafeAreaView>
   );
 }
 
-function Card({ title, children }: { title: string; children: React.ReactNode }) {
-  const { colors } = useTheme();
+function Day({ heading, children }: { heading: string; children: React.ReactNode }) {
   return (
-    <View style={[styles.card, { backgroundColor: colors.surface }]}>
-      <Text style={[type.sectionHeading, styles.cardTitle, { color: colors.ink }]}>{title}</Text>
+    <View style={styles.group}>
+      <SectionHeading>{heading}</SectionHeading>
       {children}
     </View>
   );
 }
 
-function Choice({
-  label,
-  selected,
-  onPress,
-}: {
-  label: string;
-  selected: boolean;
-  onPress: () => void;
-}) {
-  const { colors } = useTheme();
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityState={{ selected }}
-      onPress={onPress}
-      style={[
-        styles.choice,
-        {
-          borderColor: selected ? colors.ink : colors.controlBorder,
-          borderWidth: selected ? 2 : 1,
-        },
-      ]}
-    >
-      <Text
-        style={[
-          type.smallLabel,
-          { color: colors.ink, fontFamily: selected ? type.body.fontFamily : undefined },
-        ]}
-      >
-        {label}
-      </Text>
-    </Pressable>
-  );
-}
+const bars = (...kinds: readonly (readonly ActivityKind[])[]) => kinds;
 
-function Swatch({ label, color, border }: { label: string; color: string; border: string }) {
-  const { colors } = useTheme();
-  return (
-    <View style={styles.swatch}>
-      <View style={[styles.swatchChip, { backgroundColor: color, borderColor: border }]} />
-      <Text style={[type.smallLabel, styles.swatchLabel, { color: colors.mutedText }]}>
-        {label}
-      </Text>
-    </View>
-  );
-}
-
-function Bar({ label, style }: { label: string; style: object }) {
-  const { colors } = useTheme();
-  return (
-    <View style={styles.barRow}>
-      <View style={[styles.bar, style]} />
-      <Text style={[type.secondary, { color: colors.ink }]}>{label}</Text>
-    </View>
-  );
-}
+const weeks: readonly CalendarWeek[] = [
+  {
+    week: 41,
+    days: [
+      {
+        date: 5,
+        slots: bars([], [], ['fixed']),
+        isPast: true,
+        accessibilityLabel: 'Mon 5 October',
+      },
+      {
+        date: 6,
+        slots: bars([], ['flexible', 'flexible'], []),
+        isToday: true,
+        selectedBar: [1, 0],
+        accessibilityLabel: 'Tue 6 October',
+      },
+      { date: 7, slots: bars([], [], ['fixed']), accessibilityLabel: 'Wed 7 October' },
+      { date: 8, slots: bars([], [], ['busy']), accessibilityLabel: 'Thu 8 October' },
+      { date: 9, slots: bars([], ['flexible'], []), accessibilityLabel: 'Fri 9 October' },
+      { date: 10, slots: bars(['flexible'], [], []), accessibilityLabel: 'Sat 10 October' },
+      { date: 11, slots: bars([], [], []), accessibilityLabel: 'Sun 11 October' },
+    ],
+  },
+  {
+    week: 42,
+    days: [
+      { date: 12, slots: bars([], [], ['fixed']), accessibilityLabel: 'Mon 12 October' },
+      {
+        date: 13,
+        slots: bars([], ['flexible', 'flexible'], []),
+        accessibilityLabel: 'Tue 13 October',
+      },
+      { date: 14, slots: bars([], [], ['fixed']), accessibilityLabel: 'Wed 14 October' },
+      { date: 15, slots: bars([], [], []), accessibilityLabel: 'Thu 15 October' },
+      { date: 16, slots: bars(['fixed'], [], []), accessibilityLabel: 'Fri 16 October' },
+      { date: 17, slots: bars(['flexible'], [], []), accessibilityLabel: 'Sat 17 October' },
+      {
+        date: 18,
+        slots: bars(['busy'], ['busy'], ['busy']),
+        accessibilityLabel: 'Sun 18 October',
+      },
+    ],
+  },
+];
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  scroll: {
-    paddingHorizontal: layout.screenPadding,
-    paddingTop: 12,
-    paddingBottom: 40,
-    gap: 10,
+  header: {
+    paddingTop: metrics.header.paddingTop,
+    paddingHorizontal: metrics.header.paddingHorizontal,
+    gap: metrics.header.gap,
   },
-  title: { marginBottom: 6 },
-  card: {
-    borderRadius: layout.radius.card,
-    padding: layout.cardPadding,
-    marginTop: layout.cardGap - 10,
-    gap: 8,
+  timeline: { flex: 1 },
+  timelineContent: {
+    paddingTop: metrics.timeline.paddingTop,
+    paddingHorizontal: metrics.timeline.paddingHorizontal,
+    paddingBottom: metrics.timeline.paddingBottom,
+    gap: metrics.timeline.groupGap,
   },
-  cardTitle: { marginBottom: 2 },
-  cardIntro: { marginBottom: 2 },
-  choiceRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
-  choice: {
-    minHeight: layout.control.minTapTarget,
-    justifyContent: 'center',
-    paddingHorizontal: 14,
-    borderRadius: layout.radius.button,
-  },
-  swatchRow: { flexDirection: 'row', gap: 12, flexWrap: 'wrap' },
-  swatch: { alignItems: 'center', gap: 4 },
-  swatchChip: {
-    width: 56,
-    height: 36,
-    borderRadius: layout.radius.button,
-    borderWidth: 1,
-  },
-  swatchLabel: { textAlign: 'center' },
-  chipRow: { flexDirection: 'row', gap: 8 },
-  chip: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 999,
-  },
-  barRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  bar: {
-    width: 64,
-    height: layout.calendar.barHeight,
-    borderRadius: layout.radius.calendarBar,
-  },
+  group: { gap: metrics.timeline.rowGap },
+  pair: { flexDirection: 'row', gap: metrics.button.gap },
+  half: { flex: 1 },
 });
