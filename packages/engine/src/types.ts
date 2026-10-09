@@ -37,6 +37,8 @@ export interface Profile {
 export interface Exercise {
   id: string;
   name: string;
+  /** Catalogue type this came from, when picked from it. Drives guides. */
+  activityTypeId?: string;
   loadProfile: LoadProfile;
   /** Minutes a session usually takes. */
   typicalMinutes: number;
@@ -45,6 +47,8 @@ export interface Exercise {
   /** Times per 7 days the user wants it. Undefined = app decides (stage 6). */
   frequencyPerWeek?: number;
   preferredSlot?: Slot;
+  /** How much help during it: tick done / checklist / full guide. UI-only. */
+  helpLevel?: 'none' | 'checklist' | 'full';
   /** Do right after this other exercise, in the same slot. */
   pairAfterExerciseId?: string;
 }
@@ -103,6 +107,8 @@ export interface PlannedItem {
   tentative: boolean;
   /** The user pinned it; the engine plans around it like an anchor. */
   locked?: boolean;
+  /** Exact start the user gave a locked item (minutes from midnight). */
+  startMinutes?: number;
 }
 
 export interface Plan {
@@ -137,6 +143,7 @@ export type Reason =
   | { code: 'BUSY'; slot: Slot }
   | { code: 'FULL_BREAK' }
   | { code: 'ONLY_EASY' }
+  | { code: 'SHORTER_SESSIONS' }
   | { code: 'COMEBACK' }
   | { code: 'REGION_NOT_READY'; region: BodyRegion; readyOn: DayString }
   | { code: 'REGION_BORDERLINE'; region: BodyRegion }
@@ -145,6 +152,7 @@ export type Reason =
   | { code: 'SAME_DAY_HARD'; otherExerciseId: string }
   | { code: 'DAY_FULL'; load: number }
   | { code: 'ABOVE_USUAL' }
+  | { code: 'TRAINING_GOAL'; amount: Profile['trainingAmount'] }
   | { code: 'BIG_JUMP'; recentMaxLoad: number }
   | { code: 'PAST_DAY' }
   | { code: 'GOOD_SPACING' }

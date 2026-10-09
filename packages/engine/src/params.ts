@@ -57,6 +57,29 @@ export const bigJump = {
 /** "Your usual": mean daily load over this many days (descriptive only; sources, item 2). */
 export const usualWindowDays = 28;
 
+/**
+ * The user's goal setting ("improvement factor") as a multiplier on the weekly
+ * volume the engine treats as the aim. Steady = exactly the user's usual;
+ * recover/lighter aim below it, build/push above it. Deliberately modest:
+ * the guard against single big jumps (bigJump) still applies unchanged.
+ */
+export const trainingAmountFactor = {
+  recover: 0.6,
+  lighter: 0.8,
+  steady: 1.0,
+  build: 1.2,
+  push: 1.4,
+} as const;
+
+/** Effort nudge per goal setting, applied by suggestedEffort (intensity.ts). */
+export const trainingAmountEffortDelta = {
+  recover: -2,
+  lighter: -1,
+  steady: 0,
+  build: 1,
+  push: 1,
+} as const;
+
 /** The 7-day window compared against the usual. */
 export const recentWindowDays = 7;
 

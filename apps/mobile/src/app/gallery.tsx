@@ -229,7 +229,13 @@ function day(
     selectedBar?: readonly [number, number];
   },
 ) {
-  return { date, slots, accessibilityLabel: `${date} October`, ...extra };
+  return {
+    day: `2026-10-${String(date).padStart(2, '0')}`,
+    date,
+    slots,
+    accessibilityLabel: `${date} October`,
+    ...extra,
+  };
 }
 
 const styles = StyleSheet.create({

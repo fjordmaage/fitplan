@@ -19,6 +19,7 @@ import type {
   CompletedSession,
   DayString,
   Exercise,
+  GuideStep,
   LearnedParams,
   Plan,
   PlanChange,
@@ -26,6 +27,38 @@ import type {
 } from '@fitplan/engine';
 
 export const schemaVersion = 1;
+
+/** A weekly repeating busy time ("every Monday evening"). */
+export interface BlockSeries {
+  id: string;
+  /** 0 = Monday … 6 = Sunday, matching the engine's weekday(). */
+  weekday: number;
+  slots: readonly Slot[];
+  fromDay: DayString;
+  /** Inclusive end; open-ended when missing. */
+  untilDay?: DayString;
+}
+
+/** A weekly repeating fixed session ("climbing Monday 17:00"). */
+export interface AnchorSeries {
+  id: string;
+  exerciseId: string;
+  /** 0 = Monday … 6 = Sunday. */
+  weekday: number;
+  slot: Slot;
+  startMinutes: number;
+  durationMinutes: number;
+  fromDay: DayString;
+  untilDay?: DayString;
+}
+
+/** About-you data. Stored and shown; the engine only uses what it can defend. */
+export interface PersonProfile {
+  ageYears?: number;
+  heightCm?: number;
+  weightKg?: number;
+  sex?: 'male' | 'female' | 'other';
+}
 
 export interface EventEnvelope {
   /** Assigned by the persistence adapter, monotonically increasing. */
@@ -45,12 +78,22 @@ export type StoreEvent =
   | { type: 'anchorOccurrenceCancelled'; anchorId: string }
   | { type: 'blockAdded'; block: Block }
   | { type: 'blockRemoved'; blockId: string }
+  | { type: 'blockSeriesAdded'; series: BlockSeries }
+  | { type: 'blockSeriesRemoved'; seriesId: string }
+  | { type: 'anchorSeriesAdded'; series: AnchorSeries }
+  | { type: 'anchorSeriesRemoved'; seriesId: string }
   | {
       type: 'sessionCompleted';
       session: CompletedSession;
       source: 'planned' | 'logged' | 'imported';
+      /** "Did anything hurt?" chips from the after check-in. */
+      pain?: readonly string[];
+      /** The user's own note. Free text is fine: it is the user's, not the app's. */
+      note?: string;
     }
   | { type: 'sessionSkipped'; exerciseId: string; day: DayString }
+  | { type: 'profileUpdated'; patch: Partial<PersonProfile> }
+  | { type: 'routineSaved'; exerciseId: string; steps: readonly GuideStep[] }
   | { type: 'checkInRecorded'; checkIn: CheckIn }
   | {
       type: 'userMoved';
@@ -80,6 +123,13 @@ export interface Settings {
   keepNextTwoDaysSteady: boolean;
   theme: 'phone' | 'light' | 'dark';
   accentIndex: number;
+  /** The user's own words for what he is training for. */
+  goalText: string;
+  voiceCues: boolean;
+  reminders: 'off' | 'morningSummary';
+  useCalendar: boolean;
+  /** First-time setup finished (or skipped); gates the setup flow. */
+  setupDone: boolean;
 }
 
 export const defaultSettings: Settings = {
@@ -88,4 +138,9 @@ export const defaultSettings: Settings = {
   keepNextTwoDaysSteady: false,
   theme: 'phone',
   accentIndex: 0,
+  goalText: 'General fitness',
+  voiceCues: true,
+  reminders: 'morningSummary',
+  useCalendar: false,
+  setupDone: false,
 };

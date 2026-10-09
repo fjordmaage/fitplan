@@ -13,12 +13,16 @@ import type { ActivityKind } from './TimelineCard';
 export type SlotBar = ActivityKind;
 
 export interface CalendarDay {
+  /** The full day, YYYY-MM-DD; what onSelectDay reports. */
+  day: string;
   /** Day of the month, as shown in the circle. */
   date: number;
   /** Three slots, am / pm / eve, each holding zero or more bars. */
   slots: readonly (readonly SlotBar[])[];
   isToday?: boolean;
   isPast?: boolean;
+  /** The body is deliberately recovering this day: small accent mark. */
+  recovering?: boolean;
   /** Which bar, if any, carries the selection ring: [slotIndex, barIndex]. */
   selectedBar?: readonly [number, number];
   accessibilityLabel: string;
@@ -34,7 +38,8 @@ export interface CalendarProps {
   weeks: readonly CalendarWeek[];
   expanded: boolean;
   onToggleExpanded: () => void;
-  onSelectDay?: (week: number, date: number) => void;
+  /** A tap on a day: the timeline jumps there. */
+  onSelectDay?: (day: string) => void;
 }
 
 const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] as const;
@@ -77,9 +82,9 @@ export function Calendar({ weeks, expanded, onToggleExpanded, onSelectDay }: Cal
           <View style={styles.grid}>
             {week.days.map((day) => (
               <Day
-                key={`${week.week}-${day.date}`}
+                key={day.day}
                 day={day}
-                onPress={onSelectDay ? () => onSelectDay(week.week, day.date) : undefined}
+                onPress={onSelectDay ? () => onSelectDay(day.day) : undefined}
               />
             ))}
           </View>
@@ -143,6 +148,15 @@ function Day({ day, onPress }: { day: CalendarDay; onPress?: () => void }) {
           )}
         </View>
       ))}
+
+      {/* Recovery mark: a small accent dash under the slots. The word for it
+          lives in the timeline and the Body screen — colour is never the only
+          signal, and here the day's label also says it. */}
+      <View style={styles.recoveryRow}>
+        {day.recovering ? (
+          <View style={[styles.recoveryDash, { backgroundColor: colors.accent }]} />
+        ) : null}
+      </View>
     </Pressable>
   );
 }
@@ -241,6 +255,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   slot: { flexDirection: 'row', gap: m.barGap, height: m.slotHeight },
+  recoveryRow: { height: m.recoveryMarkHeight, alignItems: 'center', justifyContent: 'center' },
+  recoveryDash: {
+    width: m.recoveryMarkWidth,
+    height: m.recoveryMarkThickness,
+    borderRadius: m.recoveryMarkThickness / 2,
+  },
   bar: {
     flex: 1,
     minWidth: 0,

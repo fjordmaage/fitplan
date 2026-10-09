@@ -8,7 +8,7 @@
  * Sources for every rule: docs/engine-sources.md.
  */
 
-export const ENGINE_VERSION = '0.1.0';
+export const ENGINE_VERSION = '0.3.0';
 
 export * from './types';
 export * from './params';
@@ -21,4 +21,8 @@ export * from './catalogue';
 export * from './modes';
 export * from './suggest';
 export * from './observe';
+export * from './outlook';
+export * from './intensity';
+export * from './guide';
+export * from './focus';
 export * from './demo';

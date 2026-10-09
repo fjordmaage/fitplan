@@ -166,6 +166,10 @@ export const metrics = {
     handleHeight: 40,
     handleGap: 6,
     handleGlyph: 16,
+    /** The recovery dash under a day's slots. */
+    recoveryMarkHeight: 6,
+    recoveryMarkWidth: 14,
+    recoveryMarkThickness: 3,
   },
 
   /** The 2 unit gap then 2 unit ink ring that marks the selected thing. */
@@ -241,6 +245,110 @@ export const metrics = {
     addRadius: 26,
     addGlyph: 24,
   },
+
+  /** Library screens (Exercises, Body, Learn, History, Settings, details). */
+  library: {
+    /** The scroll region: 20 top, 16 sides, 24 bottom. */
+    scrollPaddingTop: 20,
+    scrollPaddingHorizontal: 16,
+    scrollPaddingBottom: 24,
+    /** Gap between sections; per-screen 18-22, 20 is the default. */
+    sectionGap: 20,
+    /** Heading to card. */
+    headingGap: 8,
+    /** Surface cards on these screens are radius 20, no border. */
+    cardRadius: 20,
+    cardPadding: 16,
+    /** List cards: tight vertical padding, rows do the spacing. */
+    listPaddingVertical: 4,
+    listPaddingHorizontal: 16,
+    listPaddingHorizontalTight: 14,
+    /** Common row heights. */
+    rowSmall: 44,
+    row: 48,
+    rowTall: 52,
+    rowSession: 56,
+    rowPick: 60,
+    rowRated: 64,
+    /** The Exercises tree rail. */
+    treeRailInset: 7,
+    treeRailPadding: 16,
+    treeRailWidth: 1.5,
+    /** The date gutter in lists (Body recent, Learn change log). */
+    dateGutter: 44,
+  },
+
+  /** Full-screen flow chrome (check-ins, guides, unwell, setup). */
+  flow: {
+    paddingTop: 20,
+    paddingHorizontal: 20,
+    paddingBottom: 24,
+    gap: 20,
+    sectionGap: 8,
+    /** Progress segments (guide moves, setup steps). */
+    segmentHeight: 5,
+    segmentRadius: 3,
+    segmentGap: 4,
+    /** Guide transport. */
+    transportSize: 56,
+    transportBig: 76,
+    transportGap: 20,
+    transportGlyph: 22,
+    transportBigGlyph: 28,
+    /** The one oversized button: "Done with this set". */
+    bigButtonHeight: 64,
+    bigButtonRadius: 16,
+    /** Effort 1-10 cells. */
+    effortCellHeight: 52,
+    /** The illustration placeholder panel. */
+    illustrationRadius: 20,
+  },
+
+  /** Choice controls: segmented cells, pills, stacked rows. */
+  choice: {
+    height: 44,
+    heightTall: 48,
+    radius: 12,
+    radiusDense: 10,
+    gap: 6,
+    selectedBorder: 2,
+    border: 1,
+    pillRadius: 22,
+    pillPaddingHorizontal: 16,
+    rowPaddingHorizontal: 14,
+  },
+
+  /** The custom switch (never the platform one). */
+  switch: {
+    tapWidth: 52,
+    tapHeight: 44,
+    trackWidth: 52,
+    trackHeight: 30,
+    trackRadius: 15,
+    trackPadding: 3,
+    knob: 24,
+  },
+
+  /** The 48-round +/- stepper on Exercise details. */
+  stepper: { size: 48, radius: 24, glyph: 22 },
+
+  /** Recovery meters and the training-load gauge on Body. */
+  meter: {
+    trackHeight: 6,
+    trackRadius: 3,
+    gaugeHeight: 14,
+    dotSize: 14,
+    dotBorder: 2,
+    /** The "usual" band: 35%-65% of the track. */
+    bandStart: 0.35,
+    bandWidth: 0.3,
+  },
+
+  /** Rating chips ("Good" on a list row). */
+  ratingChip: { radius: 8, paddingVertical: 4, paddingHorizontal: 8 },
+
+  /** Shape markers encoding fixed / flexible / logged. */
+  marker: { size: 12, sizeLarge: 14, radius: 4, border: 1.5 },
 
   /** Diagonal hatch, drawn with SVG because React Native has no such fill. */
   hatch: {
@@ -322,4 +430,44 @@ export const text = {
   },
   /** The guide's move name. */
   guideMoveName: { fontFamily: fontFamily.bold, fontSize: 28, lineHeight: 34 },
+  /** Titles behind a back button: 24, no letter-spacing. */
+  backTitle: { fontFamily: fontFamily.bold, fontSize: 24, lineHeight: 28 },
+  /** The big stepper value ("2 times") and similar. */
+  bigValue: { fontFamily: fontFamily.bold, fontSize: 28, lineHeight: 32 },
+  /** Stat values ("3 h 34") and big verdicts. */
+  statValue: { fontFamily: fontFamily.bold, fontSize: 22, lineHeight: 26 },
+  /** The counted guide's dose ("10 each side"). */
+  doseValue: { fontFamily: fontFamily.bold, fontSize: 56, lineHeight: 62 },
+  /** List row titles ("Easy run · 6 km"). */
+  listTitle: { fontFamily: fontFamily.semiBold, fontSize: 15 },
+  /** List row values, right-aligned muted. */
+  listValue: { fontFamily: fontFamily.regular, fontSize: 15 },
+  /** Group headers in the Exercises tree. */
+  groupTitle: { fontFamily: fontFamily.bold, fontSize: 16 },
+  groupTitleQuiet: { fontFamily: fontFamily.semiBold, fontSize: 16 },
+  /** Entry row titles on the Add sheet and setup cards. */
+  entryTitle: { fontFamily: fontFamily.bold, fontSize: 16 },
+  /** Unselected choices: 14 medium. */
+  choice: { fontFamily: fontFamily.medium, fontSize: 14 },
+  /** Selected choices: 14 bold. */
+  choiceSelected: { fontFamily: fontFamily.bold, fontSize: 14 },
+  /** Action chips and secondary action buttons: 14 semibold. */
+  actionLabel: { fontFamily: fontFamily.semiBold, fontSize: 14 },
+  /** Stacked list choices: 15. */
+  choiceRow: { fontFamily: fontFamily.medium, fontSize: 15 },
+  choiceRowSelected: { fontFamily: fontFamily.bold, fontSize: 15 },
+  /** Dense 5-across choices (How much to train): 12. */
+  choiceDense: { fontFamily: fontFamily.medium, fontSize: 12 },
+  choiceDenseSelected: { fontFamily: fontFamily.bold, fontSize: 12 },
+  /** Tiny eyebrow labels ("Up next", "Sets"). */
+  tinyLabel: { fontFamily: fontFamily.semiBold, fontSize: 12 },
+  /** The effort grid cells. */
+  effortCell: { fontFamily: fontFamily.medium, fontSize: 17 },
+  effortCellSelected: { fontFamily: fontFamily.bold, fontSize: 17 },
+  /** The rating word inside a chip on list rows. */
+  ratingChip: { fontFamily: fontFamily.bold, fontSize: 12 },
+  /** Guide cue line under the move name. */
+  guideCue: { fontFamily: fontFamily.regular, fontSize: 15 },
+  /** Stepper panel values in the routine designer. */
+  stepperValue: { fontFamily: fontFamily.bold, fontSize: 17 },
 } satisfies Record<string, TextStyle>;

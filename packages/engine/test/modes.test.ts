@@ -1,5 +1,25 @@
 import { describe, expect, it } from 'vitest';
 
+import { climbing, WED } from './helpers';
+
+describe('shorter-sessions mode', () => {
+  it('strains sessions longer than the median while active', () => {
+    const inputs = klInputs({
+      mode: {
+        cause: 'busyPeriod',
+        change: 'shorterSessions',
+        from: '2026-10-05',
+        until: '2026-10-12',
+        comeback: 'balanced',
+      },
+    });
+    // Climbing (2 h) is well above the median session length.
+    const rating = rate({ inputs, plan: { items: [] } }, climbing, WED, 'morning');
+    expect(rating.reasons.some((r) => r.code === 'SHORTER_SESSIONS')).toBe(true);
+    expect(rating.level).not.toBe('good');
+  });
+});
+
 import { comebackEndsOn, comebackFactor, modeActiveOn, type ActiveMode } from '../src/modes';
 import { plan } from '../src/schedule';
 import { rate } from '../src/rate';

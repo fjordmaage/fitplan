@@ -1,2 +1,2 @@
-export { adviceSentence, changeSentence, reasonSentence } from './sentences';
+export * from './sentences';
 export { shortDay } from '../data/plan';

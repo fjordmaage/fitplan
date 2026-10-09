@@ -10,8 +10,16 @@ import Svg, { Circle, Line, Path, Polyline, Rect } from 'react-native-svg';
 export type IconName =
   | 'settings'
   | 'chevronDown'
+  | 'chevronRight'
+  | 'chevronLeft'
+  | 'close'
   | 'lock'
   | 'plus'
+  | 'speakerOn'
+  | 'speakerOff'
+  | 'pause'
+  | 'play'
+  | 'dragHandle'
   | 'tabPlan'
   | 'tabExercises'
   | 'tabBody'
@@ -26,8 +34,16 @@ export interface IconProps {
 const strokeWidths: Record<IconName, number> = {
   settings: 2,
   chevronDown: 2.4,
+  chevronRight: 2.4,
+  chevronLeft: 2.4,
+  close: 2.4,
   lock: 2,
   plus: 2.4,
+  speakerOn: 2,
+  speakerOff: 2,
+  pause: 3,
+  play: 3,
+  dragHandle: 2,
   tabPlan: 2.4,
   tabExercises: 2,
   tabBody: 2,
@@ -64,6 +80,49 @@ function glyph(name: IconName) {
       );
     case 'chevronDown':
       return <Polyline points="6 9 12 15 18 9" />;
+    case 'chevronRight':
+      return <Polyline points="9 6 15 12 9 18" />;
+    case 'chevronLeft':
+      return <Polyline points="15 6 9 12 15 18" />;
+    case 'close':
+      return (
+        <>
+          <Line x1="6" y1="6" x2="18" y2="18" />
+          <Line x1="18" y1="6" x2="6" y2="18" />
+        </>
+      );
+    case 'speakerOn':
+      return (
+        <>
+          <Path d="M4 10v4h3l5 4V6l-5 4z" />
+          <Path d="M16 9a4 4 0 0 1 0 6" />
+          <Path d="M18.5 6.5a8 8 0 0 1 0 11" />
+        </>
+      );
+    case 'speakerOff':
+      return (
+        <>
+          <Path d="M4 10v4h3l5 4V6l-5 4z" />
+          <Line x1="16" y1="9" x2="21" y2="15" />
+          <Line x1="21" y1="9" x2="16" y2="15" />
+        </>
+      );
+    case 'pause':
+      return (
+        <>
+          <Line x1="9" y1="6" x2="9" y2="18" />
+          <Line x1="15" y1="6" x2="15" y2="18" />
+        </>
+      );
+    case 'play':
+      return <Path d="M9 6l9 6-9 6z" />;
+    case 'dragHandle':
+      return (
+        <>
+          <Line x1="5" y1="9" x2="19" y2="9" />
+          <Line x1="5" y1="15" x2="19" y2="15" />
+        </>
+      );
     case 'lock':
       return (
         <>

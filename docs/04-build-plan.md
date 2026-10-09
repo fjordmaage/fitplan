@@ -41,6 +41,17 @@ Build in this order. Each stage ends with something KL can open on his phone and
 
 **Done when:** a "Sore" check-in visibly and explainably changes the next session, and KL can export everything he has entered.
 
+*Status 10 Oct 2026:* stage 3 built, and much of stages 5–6 pulled forward after
+KL asked for the whole app to be testable at once: every screen exists
+(Exercises, details, routine designer, Body, Learn with short reads, History
+with export, Settings, About you, Not feeling 100%, check-ins, the guide for
+timed and counted moves with generated routines, first-time setup). Recovery
+is now visible: the engine rates against the projected plan, the calendar
+marks deliberate recovery days, rest-day lines name the region and the cause,
+and the engine suggests per-session intensity. Still pending from stages 4–6:
+calendar and Health Connect reading, reminders, voice/TTS and lock-screen
+controls, catalogue images, backup, accessibility pass, free accent colour.
+
 ## Stage 4 — Less typing
 
 - Phone calendar as busy time.

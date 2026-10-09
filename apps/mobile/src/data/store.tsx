@@ -13,9 +13,7 @@
 import { createContext, useContext, useMemo, useSyncExternalStore, type ReactNode } from 'react';
 
 import {
-  demoAnchors,
-  demoExercises,
-  demoHistory,
+  horizon,
   plan,
   type EngineInputs,
   type PlanChange,
@@ -23,6 +21,8 @@ import {
 } from '@fitplan/engine';
 import {
   activeExercises,
+  expandedAnchors,
+  expandedBlocks,
   fold,
   type AppState,
   type EventEnvelope,
@@ -30,7 +30,7 @@ import {
 } from '@fitplan/store';
 
 import { openEventDb, type EventDb } from './db';
-import { deviceNow, mondayOf } from './plan';
+import { deviceNow } from './plan';
 
 interface Snapshot {
   envelopes: readonly EventEnvelope[];
@@ -48,24 +48,13 @@ function emit(): void {
   for (const listener of listeners) listener();
 }
 
-function seed(target: EventDb): void {
-  const now = deviceNow();
-  const monday = mondayOf(now.day);
-  const at = new Date();
-  for (const exercise of demoExercises) target.append({ type: 'exerciseAdded', exercise }, at);
-  for (const anchor of demoAnchors(monday)) target.append({ type: 'anchorAdded', anchor }, at);
-  for (const session of demoHistory(monday)) {
-    target.append({ type: 'sessionCompleted', session, source: 'logged' }, at);
-  }
-}
-
 function toInputs(state: AppState, today: string, minutes: number): EngineInputs {
   return {
     now: { day: today, minutes },
     profile: { trainingAmount: state.settings.trainingAmount },
     exercises: activeExercises(state),
-    anchors: state.anchors,
-    blocks: state.blocks,
+    anchors: expandedAnchors(state, today, horizon.tentativeDays),
+    blocks: expandedBlocks(state, today, horizon.tentativeDays),
     history: state.history,
     checkIns: state.checkIns,
     learned: state.learned,
@@ -98,7 +87,7 @@ function reconcile(target: EventDb): readonly PlanChange[] {
 function ensureLoaded(): Snapshot {
   if (snapshot) return snapshot;
   db = openEventDb();
-  if (db.loadAll().length === 0) seed(db);
+  // A brand-new database stays empty: the first-time setup flow fills it.
   const autoChanges = reconcile(db);
   snapshot = {
     envelopes: db.loadAll(),
@@ -144,6 +133,8 @@ export interface Store {
   /** Changes from the store's own replans (launch, or after a dispatch). */
   autoChanges: readonly PlanChange[];
   autoChangesVersion: number;
+  /** The whole append-only log as JSON — the "export everything" promise. */
+  exportJson(): string;
 }
 
 const StoreContext = createContext<Store | null>(null);
@@ -167,6 +158,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       dispatch: appendAll,
       autoChanges: snap.autoChanges,
       autoChangesVersion: snap.autoChangesVersion,
+      exportJson: () =>
+        JSON.stringify(
+          { app: 'fitplan', exportedAt: new Date().toISOString(), events: snap.envelopes },
+          null,
+          1,
+        ),
     };
   }, [snap]);
 

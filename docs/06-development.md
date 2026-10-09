@@ -139,6 +139,12 @@ need a *signed release APK*.
 4. Copy it to the phone and open it. Android asks permission to install from
    this source the first time.
 
+**Quick variant for KL's own phone over USB** (no keystore yet): plain
+`./gradlew assembleRelease` builds a release APK signed with the debug key,
+arm64-only under `tools/env.sh`. It installs **in place of** the dev build
+(same id, same signature), keeps all data, and runs without Metro — right for
+"use it for a few days". It cannot be distributed; gap 39 still stands.
+
 **Not decided yet:** whether releases are built on this machine by hand or by a
 GitHub Actions job on a tag. Building in CI means the signing key has to live in
 GitHub's secrets. For a personal app, building by hand is simpler and keeps the

@@ -1,4 +1,4 @@
-export { AddSheet } from './AddSheet';
+export { AddSheet, DayGrid, InlineStepper, SlotPicker } from './AddSheet';
 export { AdviceBox } from './AdviceBox';
 export { BottomBar, type TabName } from './BottomBar';
 export { Button, type ButtonVariant } from './Button';
@@ -20,5 +20,26 @@ export { Sheet } from './Sheet';
 export { SwapSheet } from './SwapSheet';
 export { SelectionRing } from './SelectionRing';
 export { Text } from './text';
+export {
+  BackHeader,
+  CardDivider,
+  FlatRowButton,
+  GroupHeader,
+  ListRow,
+  Marker,
+  RatingChipBadge,
+  Section,
+  SurfaceCard,
+} from './library';
+export {
+  ActionChip,
+  ChoiceButton,
+  ChoiceGrid,
+  Stepper,
+  SwitchControl,
+  SwitchRow,
+  type ChoiceShape,
+} from './controls';
+export { MeterBar, ProgressSegments, RangeGauge } from './meters';
 export { TimelineCard, type ActivityKind } from './TimelineCard';
 export { TimelineRow, RestDayLine } from './TimelineRow';
