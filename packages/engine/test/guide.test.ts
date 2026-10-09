@@ -36,8 +36,9 @@ describe('buildGuide', () => {
   });
 
   it('scales strength sets with effort', () => {
-    const light = buildGuide({ ...backRoutine, activityTypeId: undefined }, 30, 3);
-    const heavy = buildGuide({ ...backRoutine, activityTypeId: undefined }, 30, 9);
+    const { activityTypeId: _omit, ...plainBack } = backRoutine;
+    const light = buildGuide(plainBack, 30, 3);
+    const heavy = buildGuide(plainBack, 30, 9);
     const mainOf = (g: typeof light) => g.steps.find((s) => s.phase === 'main');
     const lightMain = mainOf(light);
     const heavyMain = mainOf(heavy);
