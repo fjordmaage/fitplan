@@ -143,7 +143,7 @@ export default function Body() {
             rightLabel="Much more"
           />
           <Text variant="secondary" tone="muted" style={styles.smallBody}>
-            {`${recent.length} sessions, about ${recentHours} hours. Staying near your usual keeps the injury risk low while fitness holds steady.`}
+            {`${recent.length} ${recent.length === 1 ? 'session' : 'sessions'}, about ${recentHours} ${recentHours === 1 ? 'hour' : 'hours'}. Staying near your usual keeps the injury risk low while fitness holds steady.`}
           </Text>
         </SurfaceCard>
 

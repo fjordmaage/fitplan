@@ -221,12 +221,16 @@ function Details({ exercise }: { exercise: Exercise }) {
           height={lib.rowTall}
         />
         <CardDivider />
+        {/* Pairing reads in both directions: what this follows, or what
+            follows it (the back routine names the run; the run should still
+            show the link). */}
         <ListRow
-          label="Do right after it"
+          label={exercise.pairAfterExerciseId ? 'Do right after' : 'Followed by'}
           value={
             exercise.pairAfterExerciseId
               ? (names.get(exercise.pairAfterExerciseId) ?? 'Nothing')
-              : 'Nothing'
+              : (state.exercises.find((e) => e.pairAfterExerciseId === exercise.id)?.name ??
+                'Nothing')
           }
           height={lib.rowTall}
         />

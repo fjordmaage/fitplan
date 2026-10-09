@@ -20,6 +20,14 @@ import { BottomBar, CardDivider, FlatRowButton, Section, SurfaceCard, Text } fro
 
 const lib = metrics.library;
 
+/** The device-local day of an ISO timestamp (the stored `at` is UTC). */
+function localDay(atIso: string): string {
+  const date = new Date(atIso);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(
+    date.getDate(),
+  ).padStart(2, '0')}`;
+}
+
 const READS: { slug: string; title: string; duration: string }[] = [
   { slug: 'why-rest', title: 'Why rest days make you fitter', duration: '2 min' },
   { slug: 'easy-easy', title: 'Easy runs should feel easy', duration: '3 min' },
@@ -40,17 +48,22 @@ export default function Learn() {
 
   const ctx = useMemo(() => ({ names, shortDay }), [names]);
 
-  // Up to three entries explaining today's and tomorrow's placements, plus
-  // one upcoming rest day when the engine says a region is still recovering.
+  // Up to three entries explaining the next placements (looking up to a week
+  // ahead, so a busy weekend doesn't leave the section empty), plus one
+  // upcoming rest day when the engine says a region is still recovering.
   const whyEntries = useMemo(() => {
-    const tomorrow = addDays(today, 1);
+    const horizon = addDays(today, 7);
     const entries = result.plan.items
-      .filter((item) => item.day === today || item.day === tomorrow)
+      .filter((item) => item.day >= today && item.day <= horizon)
       .sort((a, b) => a.day.localeCompare(b.day) || SLOTS.indexOf(a.slot) - SLOTS.indexOf(b.slot))
       .map((item) => ({
         key: `${item.exerciseId}:${item.day}:${item.slot}`,
         title: `${names.get(item.exerciseId) ?? item.exerciseId} ${
-          item.day === today ? 'today' : 'tomorrow'
+          item.day === today
+            ? 'today'
+            : item.day === addDays(today, 1)
+              ? 'tomorrow'
+              : `on ${shortDay(item.day)}`
         }`,
         body: adviceSentence(ratingFor(store, item)?.reasons ?? [], ctx),
       }));
@@ -104,7 +117,8 @@ export default function Learn() {
             {whyEntries.length === 0 ? (
               <View style={styles.entry}>
                 <Text variant="advice" tone="muted">
-                  The next days are open — add something and the app explains where it puts it.
+                  Nothing is placed in the next week — busy time or a break. The app explains each
+                  placement here once something is planned.
                 </Text>
               </View>
             ) : (
@@ -137,7 +151,7 @@ export default function Learn() {
                   {index > 0 ? <CardDivider /> : null}
                   <View style={styles.changeRow}>
                     <Text variant="label" tone="muted" style={styles.dateGutter}>
-                      {shortDay(pair.at.slice(0, 10))}
+                      {shortDay(localDay(pair.at))}
                     </Text>
                     <Text variant="advice" style={styles.grow}>
                       {changeSentence(pair.change, ctx)}

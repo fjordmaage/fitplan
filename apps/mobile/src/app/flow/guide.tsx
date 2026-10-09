@@ -193,7 +193,9 @@ export default function Guide() {
                 {`${Math.floor(secondsLeft / 60)}:${String(secondsLeft % 60).padStart(2, '0')}`}
               </Text>
               <Text variant="secondary" tone="muted">
-                {`of ${step.seconds} seconds`}
+                {step.seconds >= 60
+                  ? `of ${Math.round(step.seconds / 60)} min`
+                  : `of ${step.seconds} seconds`}
               </Text>
             </View>
             <View style={styles.transport}>
