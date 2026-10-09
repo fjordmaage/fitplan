@@ -8,7 +8,12 @@ const MON = '2026-10-05';
 describe('expandedBlocks', () => {
   it('turns a weekly series into one block per matching weekday', () => {
     const state = emptyState();
-    state.blockSeries.push({ id: 'work', weekday: 0, slots: ['morning', 'afternoon'], fromDay: MON });
+    state.blockSeries.push({
+      id: 'work',
+      weekday: 0,
+      slots: ['morning', 'afternoon'],
+      fromDay: MON,
+    });
     const blocks = expandedBlocks(state, MON, 14);
     expect(blocks).toHaveLength(2); // two Mondays in 14 days
     expect(blocks[0]!.day).toBe('2026-10-05');

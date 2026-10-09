@@ -166,7 +166,9 @@ export function Marker({
     return <View style={[base, { borderRadius: size / 2, backgroundColor: colors.mutedText }]} />;
   }
   if (kind === 'fixed') {
-    return <View style={[base, { borderRadius: metrics.marker.radius, backgroundColor: colors.ink }]} />;
+    return (
+      <View style={[base, { borderRadius: metrics.marker.radius, backgroundColor: colors.ink }]} />
+    );
   }
   return (
     <View

@@ -7,7 +7,14 @@
  * `anchorOccurrenceCancelled` records when one occurrence is cancelled.
  */
 
-import { addDays, dayRange, weekday, type Anchor, type Block, type DayString } from '@fitplan/engine';
+import {
+  addDays,
+  dayRange,
+  weekday,
+  type Anchor,
+  type Block,
+  type DayString,
+} from '@fitplan/engine';
 
 import type { AppState } from './state';
 

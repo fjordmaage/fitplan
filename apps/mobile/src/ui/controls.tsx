@@ -11,7 +11,7 @@
 
 import { Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 
-import { metrics, text as textRoles, useTheme } from '@/theme';
+import { metrics, useTheme, type text as textRoles } from '@/theme';
 
 import { Text } from './text';
 
@@ -297,7 +297,12 @@ const styles = StyleSheet.create({
   },
   switchRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   switchText: { flex: 1, gap: 2 },
-  stepperRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
+  stepperRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
   stepperCenter: { alignItems: 'center', gap: 0 },
   stepperGlyph: { fontSize: 22, lineHeight: 26 },
 });
