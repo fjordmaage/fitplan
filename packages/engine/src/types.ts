@@ -37,6 +37,8 @@ export interface Profile {
 export interface Exercise {
   id: string;
   name: string;
+  /** Catalogue type this came from, when picked from it. Drives guides. */
+  activityTypeId?: string;
   loadProfile: LoadProfile;
   /** Minutes a session usually takes. */
   typicalMinutes: number;
@@ -103,6 +105,8 @@ export interface PlannedItem {
   tentative: boolean;
   /** The user pinned it; the engine plans around it like an anchor. */
   locked?: boolean;
+  /** Exact start the user gave a locked item (minutes from midnight). */
+  startMinutes?: number;
 }
 
 export interface Plan {
@@ -145,6 +149,7 @@ export type Reason =
   | { code: 'SAME_DAY_HARD'; otherExerciseId: string }
   | { code: 'DAY_FULL'; load: number }
   | { code: 'ABOVE_USUAL' }
+  | { code: 'TRAINING_GOAL'; amount: Profile['trainingAmount'] }
   | { code: 'BIG_JUMP'; recentMaxLoad: number }
   | { code: 'PAST_DAY' }
   | { code: 'GOOD_SPACING' }

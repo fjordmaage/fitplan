@@ -10,6 +10,7 @@ import {
   type DayString,
   type Exercise,
   type LoadProfile,
+  type Profile,
 } from './types';
 
 /**
@@ -89,6 +90,20 @@ export interface FrequencySuggestion {
  * sensible 1-4 per week.
  */
 export function suggestFrequency(
+  exercise: Exercise,
+  allExercises: readonly Exercise[],
+  history: readonly CompletedSession[],
+  today: DayString,
+  amount: Profile['trainingAmount'] = 'steady',
+): FrequencySuggestion {
+  const base = baseFrequency(exercise, allExercises, history, today);
+  // The goal setting shifts the suggestion one step: recovering keeps the
+  // habit alive at less, pushing adds a session. The guideline stays the anchor.
+  const delta = amount === 'recover' ? -1 : amount === 'push' ? 1 : 0;
+  return { ...base, perWeek: Math.min(4, Math.max(1, base.perWeek + delta)) };
+}
+
+function baseFrequency(
   exercise: Exercise,
   allExercises: readonly Exercise[],
   history: readonly CompletedSession[],

@@ -47,7 +47,11 @@ export function reasonSentence(reason: Reason, ctx: SentenceContext): string {
     case 'DAY_FULL':
       return 'That day is already full.';
     case 'ABOVE_USUAL':
-      return 'It would push the week above what you usually do.';
+      return "It would push the week above what you're aiming for.";
+    case 'TRAINING_GOAL':
+      return reason.amount === 'build' || reason.amount === 'push'
+        ? "You're building up, and today can take a bit more."
+        : "You've set training to ease off for now.";
     case 'BIG_JUMP':
       return "It's a lot more than you've done in one go lately.";
     case 'PAST_DAY':
@@ -55,7 +59,7 @@ export function reasonSentence(reason: Reason, ctx: SentenceContext): string {
     case 'GOOD_SPACING':
       return 'It spreads your week out nicely.';
     case 'REGIONS_READY':
-      return 'Everything it works is recovered.';
+      return 'Everything this session uses will be recovered.';
     case 'PREFERRED_TIME':
       return 'Your preferred time of day.';
     case 'FITS_FREQUENCY':

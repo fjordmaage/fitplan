@@ -60,6 +60,20 @@ describe('rate (engine spec, "Rating function")', () => {
     expect(rating.reasons[0]?.code).toBe('BUSY');
   });
 
+  it('sees planned future sessions, not just history (projected recovery)', () => {
+    // Wednesday evening climbing is anchored. Rating climbing for Thursday
+    // must know Wednesday will happen: fingers cannot be plain "recovered".
+    const inputs = klInputs();
+    const climbing = inputs.exercises.find((e) => e.id === 'climb')!;
+    const thursday = rate({ inputs, plan: emptyPlan }, climbing, '2026-10-08', 'evening');
+    const fingersFine = thursday.reasons.some(
+      (r) =>
+        (r.code === 'REGION_BORDERLINE' || r.code === 'REGION_NOT_READY') &&
+        r.region === 'fingersAndForearms',
+    );
+    expect(fingersFine).toBe(true);
+  });
+
   it('is deterministic', () => {
     const a = rate({ inputs: klInputs(), plan: emptyPlan }, run, WED, 'afternoon');
     const b = rate({ inputs: klInputs(), plan: emptyPlan }, run, WED, 'afternoon');

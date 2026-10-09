@@ -168,6 +168,40 @@ between the user's current four-week habit and the guideline, bounded to 1-4
 per week; strength-leaning exercises are nudged toward the twice-a-week floor.
 The suggestion is a starting point the user edits, not a prescription.
 
+## 11. Suggested intensity — supported as a method, parameters are policy
+
+RPE-based autoregulation: prescribing training intensity by rating of
+perceived exertion, and adjusting the day's session to how recovered the
+athlete actually is, is an established and evidence-supported method in
+strength and endurance training. It matches this app's constraints exactly:
+the user already logs effort 1–10, so the engine can anchor its suggestion to
+the user's own baseline instead of inventing an absolute number.
+
+- Autoregulation in resistance training (systematic review):
+  <https://pmc.ncbi.nlm.nih.gov/articles/PMC8449772/>
+- Session-RPE as a valid intensity measure across sports (review):
+  <https://pmc.ncbi.nlm.nih.gov/articles/PMC5641651/>
+
+Engine (`intensity.ts`): the baseline is the median effort of the last five
+completions of that exercise (falling back to its default). The engine only
+moves off the baseline for reasons it can name: a heavily loaded region below
+borderline readiness caps the session at effort 3; borderline takes one off;
+"only easy sessions" caps at 4; the comeback window scales the baseline by
+its factor; the goal setting takes one or two off (recover/lighter) or adds
+one (build/push) — the push only on a day with nothing against it. The exact
+step sizes are policy, not measurements, and live in `params.ts`.
+
+## 12. Rating against the projected plan, not just history — method note
+
+Fatigue at a future day is computed from completed sessions *plus* the
+sessions the plan says will happen before then (anchors assumed done unless
+cancelled; flexible items at their typical dose). This follows from the
+fitness–fatigue model family (items 4–5): the model is an impulse-response
+over all training, and a planner that ignored its own planned impulses would
+systematically underestimate fatigue and could never place recovery
+deliberately. Past fixed sessions without a log are assumed done at their
+typical dose until a real log replaces them; a logged session always wins.
+
 ## What this means for the model, in one place
 
 | Parameter | Value | Basis |
@@ -181,6 +215,10 @@ The suggestion is a starting point the user edits, not a prescription.
 | "Your usual" baseline | mean daily load over 28 days | descriptive only (2) |
 | Big-jump guard | session dose > 1.3 × max of last 30 days → `BIG_JUMP`, rated OK | (3) |
 | Hard day definition | session load > 1.25 × user's median session load | internal, tunable |
+| Goal setting (volume aim) | recover 0.6 / lighter 0.8 / steady 1.0 / build 1.2 / push 1.4 × usual | policy, modest on purpose (11) |
+| Goal setting (effort nudge) | −2 / −1 / 0 / +1 / +1 on the 1–10 scale | policy (11) |
+| Intensity floor when a region is not ready | effort 3 | policy (11) |
+| Intensity cap in "only easy" mode | effort 4 | policy (9, 11) |
 
 Every number is in `packages/engine/src/params.ts` with a comment pointing
 back at this file.
