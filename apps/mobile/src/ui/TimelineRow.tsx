@@ -24,10 +24,10 @@ export function TimelineRow({ time, children }: { time?: string; children: React
   );
 }
 
-export function RestDayLine() {
+export function RestDayLine({ children = 'Rest day' }: { children?: string }) {
   return (
     <Text variant="secondary" tone="muted" style={styles.restDay}>
-      Rest day
+      {children}
     </Text>
   );
 }

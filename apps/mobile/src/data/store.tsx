@@ -16,6 +16,7 @@ import {
   demoAnchors,
   demoExercises,
   demoHistory,
+  horizon,
   plan,
   type EngineInputs,
   type PlanChange,
@@ -23,6 +24,8 @@ import {
 } from '@fitplan/engine';
 import {
   activeExercises,
+  expandedAnchors,
+  expandedBlocks,
   fold,
   type AppState,
   type EventEnvelope,
@@ -64,8 +67,8 @@ function toInputs(state: AppState, today: string, minutes: number): EngineInputs
     now: { day: today, minutes },
     profile: { trainingAmount: state.settings.trainingAmount },
     exercises: activeExercises(state),
-    anchors: state.anchors,
-    blocks: state.blocks,
+    anchors: expandedAnchors(state, today, horizon.tentativeDays),
+    blocks: expandedBlocks(state, today, horizon.tentativeDays),
     history: state.history,
     checkIns: state.checkIns,
     learned: state.learned,

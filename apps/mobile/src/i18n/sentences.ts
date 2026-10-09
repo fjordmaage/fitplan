@@ -5,7 +5,14 @@
  * folder so a Danish version stays possible (gap 35).
  */
 
-import type { PlanChange, Reason } from '@fitplan/engine';
+import type {
+  BodyRegion,
+  CompletedSession,
+  EffortSuggestion,
+  Observation,
+  PlanChange,
+  Reason,
+} from '@fitplan/engine';
 
 export interface SentenceContext {
   /** Exercise id -> display name. */
@@ -23,6 +30,23 @@ const regionWords: Record<string, string> = {
   fingersAndForearms: 'fingers and forearms',
   general: 'body',
 };
+
+/** The region's everyday name ("fingers and forearms"). */
+export function regionName(region: BodyRegion): string {
+  return regionWords[region] ?? region;
+}
+
+/** The region as the Body screen lists it ("Fingers and forearms"). */
+export function regionHeading(region: BodyRegion): string {
+  const headings: Record<BodyRegion, string> = {
+    legs: 'Legs',
+    backAndCore: 'Back and core',
+    armsAndShoulders: 'Arms and shoulders',
+    fingersAndForearms: 'Fingers and forearms',
+    general: 'Whole body',
+  };
+  return headings[region];
+}
 
 export function reasonSentence(reason: Reason, ctx: SentenceContext): string {
   switch (reason.code) {
@@ -88,6 +112,67 @@ export function changeSentence(change: PlanChange, ctx: SentenceContext): string
       return `${name} on ${ctx.shortDay(change.from!.day)} was taken out${why}.`;
   }
 }
+
+/** The Body screen's verdict words for one region. */
+export function readinessWords(
+  ready: boolean,
+  readyOn: string | undefined,
+  ctx: SentenceContext,
+  today: string,
+): string {
+  if (ready) return 'Ready';
+  if (!readyOn || readyOn === today) return 'Ready later today';
+  return `Ready ${ctx.shortDay(readyOn)}`;
+}
+
+/** The timeline's rest-day line when a region is recovering. */
+export function recoverySentence(
+  regions: readonly BodyRegion[],
+  cause: CompletedSession | undefined,
+  ctx: SentenceContext,
+): string {
+  if (regions.length === 0) return 'Rest day';
+  const what = regionWords[regions[0]!] ?? regions[0]!;
+  if (!cause) return `Recovery — ${what}`;
+  const causeName = ctx.names.get(cause.exerciseId) ?? 'training';
+  return `Recovery — ${what}, after ${ctx.shortDay(cause.day)}'s ${causeName.toLowerCase()}`;
+}
+
+/** The suggested-intensity line ("Keep it easy today — ...") */
+export function effortSentence(s: EffortSuggestion, ctx: SentenceContext): string {
+  const why = s.reasons[0] ? ` ${reasonSentence(s.reasons[0], ctx)}` : '';
+  if (s.direction === 'easier') return `Keep it easier than usual today (${s.effort} of 10).${why}`;
+  if (s.direction === 'harder') return `Today can take a bit more (${s.effort} of 10).${why}`;
+  return `Your usual effort is right today (${s.effort} of 10).`;
+}
+
+/** Plain-language observations for the Body screen. */
+export function observationSentence(o: Observation, ctx: SentenceContext): string {
+  switch (o.code) {
+    case 'GETTING_EASIER':
+      return `${ctx.names.get(o.exerciseId) ?? 'One exercise'} is getting easier: the same dose went from effort ${o.earlierEffort} to ${o.recentEffort}.`;
+    case 'GETTING_HARDER':
+      return `${ctx.names.get(o.exerciseId) ?? 'One exercise'} has felt harder lately: the same dose went from effort ${o.earlierEffort} to ${o.recentEffort}.`;
+    case 'SLOW_RECOVERY_REGION':
+      return `Your ${regionWords[o.region]} take longer to recover than the starting guess; the app has adjusted.`;
+    case 'FAST_RECOVERY_REGION':
+      return `Your ${regionWords[o.region]} recover faster than the starting guess; the app has adjusted.`;
+  }
+}
+
+/** One line describing each effort number, for the after check-in. */
+export const effortDescriptions: Record<number, string> = {
+  1: 'Barely anything. You could do this all day.',
+  2: 'Very light. Breathing easy throughout.',
+  3: 'Light. You could talk in full sentences.',
+  4: 'Comfortable. You could have kept going for a long time.',
+  5: 'Moderate. Working, but in control.',
+  6: 'Somewhat hard. Talking comes in shorter sentences.',
+  7: 'Hard. You had to concentrate to keep it up.',
+  8: 'Very hard. A few words at a time, no more.',
+  9: 'Close to your limit. You could not have done much more.',
+  10: 'Everything you had.',
+};
 
 /** The knock-on clause: ", because ..." from the change's first reason. */
 function changeWhy(change: PlanChange, ctx: SentenceContext): string {
