@@ -1,0 +1,36 @@
+# dependencies
+node_modules/
+.npm/
+
+# build output
+dist/
+build/
+*.tsbuildinfo
+
+# expo
+.expo/
+.expo-shared/
+apps/mobile/android/
+apps/mobile/ios/
+*.apk
+*.aab
+*.keystore
+!debug.keystore
+
+# test / coverage
+coverage/
+
+# logs
+*.log
+npm-debug.log*
+
+# editors / os
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# local secrets and local-only config
+.env
+.env.local
+local.properties
