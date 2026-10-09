@@ -166,6 +166,10 @@ export const metrics = {
     handleHeight: 40,
     handleGap: 6,
     handleGlyph: 16,
+    /** The recovery dash under a day's slots. */
+    recoveryMarkHeight: 6,
+    recoveryMarkWidth: 14,
+    recoveryMarkThickness: 3,
   },
 
   /** The 2 unit gap then 2 unit ink ring that marks the selected thing. */

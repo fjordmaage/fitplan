@@ -4,7 +4,7 @@ What is unsolved, unverified or only sketched. Each has either a proposed soluti
 
 ## The engine
 
-1. **The engine core exists but is young** (7 Oct 2026): load, per-region recovery with check-in correction, the rating function with fixed reason precedence, the scheduler with stability, pairing and the frozen window, and the change list — 51 tests including KL's scenario week. Still missing: swap alternatives, duration estimates from history, frequency suggestion, observations, generated routines, "Not feeling 100%" modes. *Solution:* stages 3-6 as planned; tune weights against real use.
+1. **The engine core is broad but young** (updated 10 Oct 2026): load, projected per-region recovery (ratings now see planned sessions, not just history — sources, item 12), rating with fixed precedence, the scheduler, swap alternatives, duration estimates, frequency suggestions, suggested intensity (sources, item 11), observations, generated guides, focus picking, "Not feeling 100%" modes, the goal setting wired into volume/effort/frequency — 102 tests. *Still open:* tune weights and parameters against real use.
 2. **Recovery per body region has no reference implementation.** *Problem, partly open:* the model is a reasonable design and its half-lives now have grounding (`docs/engine-sources.md`, items 4–5), but they are still estimates, and the load profiles per activity type remain guesses. *Solution:* named parameters, check-in correction, tune after real use.
 3. *Closed 7 Oct 2026.* The science is checked: `docs/engine-sources.md`. Two spec rules were changed by it (the 7-vs-28 ratio is descriptive only; the weekly-increase rule became a per-session jump guard).
 4. *Closed 7 Oct 2026.* The `training-load` library is not used: the needed parts (session load, rolling windows) are a few lines each and are reimplemented with their own tests.
@@ -26,7 +26,7 @@ What is unsolved, unverified or only sketched. Each has either a proposed soluti
 17. **Selecting a card to reveal its actions is still a hidden step** for everything except today's first workout. *Solution in place:* that card starts selected and flexible cards carry a small arrow. Watch whether KL finds Move and Swap without being told.
 18. **The before check-in is four questions every time.** KL wants it kept as is. *Leave it.* If it becomes a chore, offer "Feeling normal" as a one-tap shortcut later.
 19. **The exercises tree has one child per group today,** so it looks heavier than needed. *Solution:* render flat until a group has more than one item.
-20. **Not drawn at all:** setup steps 1, 2, 4 and 5; empty states (no plan yet, nothing today, no history); creating and editing a repeating fixed session; editing or deleting busy time; the "ask me first" proposal view; reminders; the full catalogue browser; the exact-time picker; About you; Voice and sound; Connections; export and backup; error states. *Solution:* build from the existing components and the product spec; show KL each one.
+20. **Not drawn at all** (several now built from existing components, 10 Oct 2026 — setup steps 1/2/4/5, About you, fixed-session creation, busy date/repeat pickers, the recovery marking in the calendar): still missing designs/builds for editing or deleting existing busy time and fixed series, the "ask me first" proposal view, reminders, the exact-time picker for locked items, Voice and sound, Connections, export and backup, error states. *Solution:* build from the existing components and the product spec; show KL each one.
 21. **Prototype links are shortcuts.** Start on any workout leads to the back-routine guide; the after check-in always shows a run. Ignore the specific content when a link looks inconsistent.
 22. **The plan-updated card can stack up** if several changes happen at once. *Solution:* merge into one card listing all changes; always reachable later in Learn.
 
@@ -35,7 +35,9 @@ What is unsolved, unverified or only sketched. Each has either a proposed soluti
 23. **Only two screens exist** (a timed move and a counted move). Pause, rest between sets, finishing, and resuming after leaving are not drawn.
 24. **Lock-screen and notification controls, and voice, are undesigned.** Background audio on Android needs a foreground service and care with battery settings. *Problem:* behaviour varies by phone maker. Test on KL's phone early in stage 5.
 25. **Run and climbing guides are ideas only:** spoken interval cues while Strava records; warm-up, rest timers between attempts, hang timers and cool-down for climbing. Do not build GPS tracking.
-26. **Generated routines will be generic.** The rules for building them from the catalogue are not written. *Solution:* fixed tables by level; KL edits and saves.
+26. **Generated routines are generic** (rules written 10 Oct 2026: deterministic warm-up / main / cool-down templates per activity group, scaled by duration and effort — `guide.ts`). The moves are session structures, not exercise-by-exercise programmes; the routine designer edits and saves them. *Open:* richer per-move catalogues and illustrations.
+26b. **Voice cues are a stored toggle, not yet speech.** The guide's speaker button persists the setting; actual text-to-speech, audio focus and the lock-screen controls are stage 5 work (gap 24).
+26c. **"Search all moves, or write your own" in the routine designer is a placeholder.** It says so honestly on tap.
 
 ## Data and integrations
 
@@ -44,6 +46,8 @@ What is unsolved, unverified or only sketched. Each has either a proposed soluti
 29. **Health Connect gives only time, distance and calories from Strava.** No pace or heart rate. *Fine for stage 4.* Strava's own API is the later route and is limited to the owner until Strava reviews the app.
 30. **Matching imports to planned sessions** (same day, similar type and duration) is unspecified. *Solution:* simple rules, and ask when unsure.
 31. *Closed 7 Oct 2026.* Storage is an append-only event log in SQLite (`packages/store` holds the event types and the pure fold to state; the app holds the SQLite adapter), versioned per event for future migrations. Nothing is ever deleted: undo appends an `eventUndone` event. The log→state→plan round trip is property-tested.
+31b. **"Use my phone calendar" is a stored switch, not yet a reader** (10 Oct 2026). The Add sheet and Settings store the preference; actually reading calendar events as busy time is stage 4 (Connections). The copy says "once connections arrive" so the app does not overpromise.
+31c. **History's Export button is a promise, not a file yet.** Tapping it says so. The export itself is the next piece of stage 3 work (see gap 32).
 32. **"Never delete user data" only holds as far as the phone does.** Everything lives in one SQLite file inside the app's private storage. Uninstalling the app, resetting the phone, or losing it takes the lot, and export does not arrive until stage 3. Stage 2 asks KL to live in the app for a week before that exists. *Solution:* bring a plain "export everything to a file" button forward into stage 2, and decide whether to let Android's own app backup include the database.
 33. **wger** has a multilingual catalogue (useful for Danish later) but its code is AGPL and its data is Creative Commons share-alike. *Decide before using.*
 

@@ -13,9 +13,6 @@
 import { createContext, useContext, useMemo, useSyncExternalStore, type ReactNode } from 'react';
 
 import {
-  demoAnchors,
-  demoExercises,
-  demoHistory,
   horizon,
   plan,
   type EngineInputs,
@@ -33,7 +30,7 @@ import {
 } from '@fitplan/store';
 
 import { openEventDb, type EventDb } from './db';
-import { deviceNow, mondayOf } from './plan';
+import { deviceNow } from './plan';
 
 interface Snapshot {
   envelopes: readonly EventEnvelope[];
@@ -49,17 +46,6 @@ const listeners = new Set<() => void>();
 
 function emit(): void {
   for (const listener of listeners) listener();
-}
-
-function seed(target: EventDb): void {
-  const now = deviceNow();
-  const monday = mondayOf(now.day);
-  const at = new Date();
-  for (const exercise of demoExercises) target.append({ type: 'exerciseAdded', exercise }, at);
-  for (const anchor of demoAnchors(monday)) target.append({ type: 'anchorAdded', anchor }, at);
-  for (const session of demoHistory(monday)) {
-    target.append({ type: 'sessionCompleted', session, source: 'logged' }, at);
-  }
 }
 
 function toInputs(state: AppState, today: string, minutes: number): EngineInputs {
@@ -101,7 +87,7 @@ function reconcile(target: EventDb): readonly PlanChange[] {
 function ensureLoaded(): Snapshot {
   if (snapshot) return snapshot;
   db = openEventDb();
-  if (db.loadAll().length === 0) seed(db);
+  // A brand-new database stays empty: the first-time setup flow fills it.
   const autoChanges = reconcile(db);
   snapshot = {
     envelopes: db.loadAll(),

@@ -49,6 +49,19 @@ describe('recoveryOutlook', () => {
   });
 });
 
+describe('recoveryDays', () => {
+  it('marks the day after climbing as finger recovery, unless climbing is planned again', async () => {
+    const { recoveryDays } = await import('../src/outlook');
+    const inputs = klInputs();
+    const { plan: p } = plan(inputs);
+    const days = recoveryDays(inputs, p, 14);
+    // Thursday after Wednesday climbing: fingers recovering, nothing climbs.
+    expect(days.get('2026-10-08')).toContain('fingersAndForearms');
+    // Wednesday itself has the climbing anchor: not finger recovery.
+    expect(days.get('2026-10-07') ?? []).not.toContain('fingersAndForearms');
+  });
+});
+
 describe('mainRecoveryCause', () => {
   it('names the session a region is recovering from', () => {
     const inputs = klInputs({ now: { day: '2026-10-08', minutes: 9 * 60 } });

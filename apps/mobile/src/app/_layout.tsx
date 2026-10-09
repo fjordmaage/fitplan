@@ -10,8 +10,9 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import * as SplashScreen from 'expo-splash-screen';
 
-import { StoreProvider } from '@/data/store';
-import { ThemeProvider, useTheme } from '@/theme';
+import { StoreProvider, useStore } from '@/data/store';
+import { accentPresets, ThemeProvider, useTheme, type ThemeName } from '@/theme';
+import { useColorScheme } from 'react-native';
 
 void SplashScreen.preventAutoHideAsync();
 
@@ -27,6 +28,20 @@ function Navigator() {
         }}
       />
     </>
+  );
+}
+
+/** The user's Look settings, applied as the theme. */
+function SettingsTheme({ children }: { children: React.ReactNode }) {
+  const store = useStore();
+  const phone = useColorScheme();
+  const { theme, accentIndex } = store.state.settings;
+  const name: ThemeName = theme === 'phone' ? (phone === 'dark' ? 'dark' : 'light') : theme;
+  const accent = accentPresets[name][accentIndex] ?? accentPresets[name][0];
+  return (
+    <ThemeProvider preference={name} accent={accent}>
+      {children}
+    </ThemeProvider>
   );
 }
 
@@ -49,10 +64,10 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeProvider>
-      <StoreProvider>
+    <StoreProvider>
+      <SettingsTheme>
         <Navigator />
-      </StoreProvider>
-    </ThemeProvider>
+      </SettingsTheme>
+    </StoreProvider>
   );
 }

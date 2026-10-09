@@ -1,4 +1,4 @@
-export { AddSheet } from './AddSheet';
+export { AddSheet, DayGrid, InlineStepper, SlotPicker } from './AddSheet';
 export { AdviceBox } from './AdviceBox';
 export { BottomBar, type TabName } from './BottomBar';
 export { Button, type ButtonVariant } from './Button';

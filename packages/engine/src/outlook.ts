@@ -11,7 +11,7 @@
  */
 
 import { fatigueAt, toReadiness, halfLifeHours } from './recovery';
-import { readiness as readinessParams } from './params';
+import { heavyRegionShare, readiness as readinessParams } from './params';
 import { sessionLoadOf, usualDailyLoad } from './load';
 import { addDays, dayRange, hoursBetween, isBefore, slotMinutes } from './time';
 import type { BodyRegion, CompletedSession, DayString, EngineInputs, Instant, Plan } from './types';
@@ -124,19 +124,31 @@ export function mainRecoveryCause(
 }
 
 /**
- * Days ahead (including today) that are deliberate recovery days: some region
- * is still recovering and nothing in the plan or anchors loads it heavily
- * that day. Used for the calendar's recovery marking.
+ * Days ahead (including today) where recovery is deliberately happening:
+ * some region is still recovering and nothing planned or anchored that day
+ * loads it heavily. If the user climbs again anyway, that day is not finger
+ * recovery. Used for the calendar's recovery marking and the rest-day lines.
  */
 export function recoveryDays(
   inputs: EngineInputs,
   plan: Plan,
   days: number,
 ): Map<DayString, readonly BodyRegion[]> {
+  const byId = new Map(inputs.exercises.map((e) => [e.id, e]));
   const outlook = recoveryOutlook(inputs, plan, days);
   const out = new Map<DayString, readonly BodyRegion[]>();
   for (const entry of outlook) {
-    if (entry.recovering.length > 0) out.set(entry.day, entry.recovering);
+    if (entry.recovering.length === 0) continue;
+    const dayExercises = [
+      ...inputs.anchors.filter((a) => !a.cancelled && a.day === entry.day),
+      ...plan.items.filter((i) => i.day === entry.day),
+    ]
+      .map((x) => byId.get(x.exerciseId))
+      .filter((e) => e != null);
+    const resting = entry.recovering.filter((region) =>
+      dayExercises.every((e) => (e.loadProfile[region] ?? 0) < heavyRegionShare),
+    );
+    if (resting.length > 0) out.set(entry.day, resting);
   }
   return out;
 }
