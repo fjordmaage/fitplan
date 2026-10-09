@@ -8,17 +8,21 @@ import {
   activityTypes,
   estimatedMinutes,
   guideGroup,
+  pickForFocus,
   weekday,
   type ActivityType,
+  type BodyRegion,
   type Exercise,
 } from '@fitplan/engine';
 import { type AppState } from '@fitplan/store';
 
 import { useStore } from '@/data/store';
+import { regionHeading } from '@/i18n';
 import { metrics, useTheme } from '@/theme';
 import {
   BottomBar,
   CardDivider,
+  ChoiceButton,
   FlatRowButton,
   GroupHeader,
   Marker,
@@ -118,6 +122,7 @@ export default function Exercises() {
 
   const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(new Set());
   const [browsing, setBrowsing] = useState(false);
+  const [focusRegion, setFocusRegion] = useState<BodyRegion | null>(null);
 
   const active = useMemo(
     () => state.exercises.filter((e) => !state.archivedExerciseIds.has(e.id)),
@@ -301,6 +306,52 @@ export default function Exercises() {
               onPress={() => setBrowsing((value) => !value)}
             />
           </SurfaceCard>
+
+          {/* "Pick suitable exercises for a focus a doctor gave you": the
+              user names the region; the app only picks and places. */}
+          <SurfaceCard style={styles.focusCard}>
+            <Text variant="sectionHeading">For a focus you were given</Text>
+            <Text variant="secondary" tone="muted">
+              Told to strengthen something? Pick the area and the app suggests what works it. It
+              schedules; it never diagnoses.
+            </Text>
+            <View style={styles.focusChips}>
+              {(
+                ['legs', 'backAndCore', 'armsAndShoulders', 'fingersAndForearms'] as BodyRegion[]
+              ).map((region) => (
+                <ChoiceButton
+                  key={region}
+                  label={regionHeading(region)}
+                  selected={focusRegion === region}
+                  onPress={() => setFocusRegion(focusRegion === region ? null : region)}
+                  shape="pill"
+                />
+              ))}
+            </View>
+            {focusRegion
+              ? pickForFocus(focusRegion)
+                  .filter((candidate) => !active.some((e) => e.id === candidate.type.id))
+                  .slice(0, 4)
+                  .map((candidate, index) => (
+                    <Fragment key={candidate.type.id}>
+                      {index > 0 ? <CardDivider /> : null}
+                      <View style={styles.pickRow}>
+                        <View style={styles.childText}>
+                          <Text variant="tinyLabel" tone="muted">
+                            {`Works your ${regionHeading(focusRegion).toLowerCase()}`}
+                          </Text>
+                          <Text variant="listTitle">{candidate.type.name}</Text>
+                        </View>
+                        <OutlineChip
+                          label="Add"
+                          accessibilityLabel={`Add ${candidate.type.name}`}
+                          onPress={() => addType(candidate.type)}
+                        />
+                      </View>
+                    </Fragment>
+                  ))
+              : null}
+          </SurfaceCard>
         </Section>
 
         <Section heading="Done before">
@@ -399,6 +450,8 @@ const styles = StyleSheet.create({
   title: { paddingHorizontal: metrics.header.inset },
   /** The 09 mockup's list cards sit at 6px vertical, not the usual 4. */
   listCard: { paddingVertical: 6 },
+  focusCard: { gap: 8 },
+  focusChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   rail: {
     marginLeft: lib.treeRailInset,
     paddingLeft: lib.treeRailPadding,
