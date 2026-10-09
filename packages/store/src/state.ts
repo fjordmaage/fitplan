@@ -11,6 +11,7 @@ import type {
   CheckIn,
   CompletedSession,
   Exercise,
+  GuideStep,
   LearnedParams,
   Plan,
   PlanChange,
@@ -53,6 +54,8 @@ export interface AppState {
   learned: LearnedParams;
   settings: Settings;
   person: PersonProfile;
+  /** Hand-saved routines by exercise id; absent = generate on the spot. */
+  routines: Map<string, readonly GuideStep[]>;
   mode?: ActiveMode;
   /** The latest saved plan, if any. */
   currentPlan?: Plan;
@@ -77,6 +80,7 @@ export function emptyState(): AppState {
     learned: {},
     settings: { ...defaultSettings },
     person: {},
+    routines: new Map(),
     planLog: [],
   };
 }
@@ -180,6 +184,9 @@ function apply(state: AppState, event: StoreEvent, at: string): void {
       break;
     case 'profileUpdated':
       state.person = { ...state.person, ...event.patch };
+      break;
+    case 'routineSaved':
+      state.routines.set(event.exerciseId, event.steps);
       break;
     case 'checkInRecorded':
       state.checkIns.push(event.checkIn);

@@ -47,6 +47,8 @@ export interface Exercise {
   /** Times per 7 days the user wants it. Undefined = app decides (stage 6). */
   frequencyPerWeek?: number;
   preferredSlot?: Slot;
+  /** How much help during it: tick done / checklist / full guide. UI-only. */
+  helpLevel?: 'none' | 'checklist' | 'full';
   /** Do right after this other exercise, in the same slot. */
   pairAfterExerciseId?: string;
 }

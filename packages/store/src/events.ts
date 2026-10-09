@@ -19,6 +19,7 @@ import type {
   CompletedSession,
   DayString,
   Exercise,
+  GuideStep,
   LearnedParams,
   Plan,
   PlanChange,
@@ -92,6 +93,7 @@ export type StoreEvent =
     }
   | { type: 'sessionSkipped'; exerciseId: string; day: DayString }
   | { type: 'profileUpdated'; patch: Partial<PersonProfile> }
+  | { type: 'routineSaved'; exerciseId: string; steps: readonly GuideStep[] }
   | { type: 'checkInRecorded'; checkIn: CheckIn }
   | {
       type: 'userMoved';
