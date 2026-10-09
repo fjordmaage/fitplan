@@ -1,5 +1,5 @@
 import { Fragment, useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, Share, StyleSheet, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -159,12 +159,22 @@ export default function History() {
           <Text variant="backTitle" style={styles.grow}>
             History
           </Text>
-          <ActionChip label="Export" onPress={() => setExportNote((value) => !value)} />
+          <ActionChip
+            label="Export"
+            onPress={() => {
+              // Everything ever logged, as one JSON file through the share
+              // sheet (save to Files, Drive, mail — the user's choice).
+              Share.share({ title: 'fitplan export', message: store.exportJson() }).catch(() =>
+                setExportNote(true),
+              );
+            }}
+          />
         </View>
 
         {exportNote ? (
           <Text variant="secondary" tone="muted" style={styles.note}>
-            Export lands with the next update — nothing you log is ever deleted.
+            The share sheet would not open. Nothing is lost — everything stays on the phone; try
+            again in a moment.
           </Text>
         ) : null}
 

@@ -133,6 +133,8 @@ export interface Store {
   /** Changes from the store's own replans (launch, or after a dispatch). */
   autoChanges: readonly PlanChange[];
   autoChangesVersion: number;
+  /** The whole append-only log as JSON — the "export everything" promise. */
+  exportJson(): string;
 }
 
 const StoreContext = createContext<Store | null>(null);
@@ -156,6 +158,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       dispatch: appendAll,
       autoChanges: snap.autoChanges,
       autoChangesVersion: snap.autoChangesVersion,
+      exportJson: () =>
+        JSON.stringify(
+          { app: 'fitplan', exportedAt: new Date().toISOString(), events: snap.envelopes },
+          null,
+          1,
+        ),
     };
   }, [snap]);
 
