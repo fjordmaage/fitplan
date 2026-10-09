@@ -2,10 +2,17 @@ import { useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { addDays, dayRange, type PlannedItem } from '@fitplan/engine';
+import {
+  addDays,
+  dayRange,
+  swapAlternatives,
+  type PlanChange,
+  type PlannedItem,
+  type Rating,
+} from '@fitplan/engine';
 import {
   applyMove,
-  buildToday,
+  applySwap,
   entriesFor,
   firstToday,
   headingFor,
@@ -16,11 +23,13 @@ import {
   ratingFor,
   shortDay,
   type DayEntry,
-  type TodayModel,
+  type PlanView,
 } from '@/data/plan';
+import { useStore } from '@/data/store';
 import { adviceSentence, changeSentence, reasonSentence } from '@/i18n';
 import { metrics, useTheme } from '@/theme';
 import {
+  AddSheet,
   AdviceBox,
   BottomBar,
   Button,
@@ -30,40 +39,50 @@ import {
   RestDayLine,
   ScreenTitle,
   SectionHeading,
+  SwapSheet,
   TimelineCard,
   TimelineRow,
   type CalendarWeek,
   type SlotBar,
 } from '@/ui';
-import type { PlanChange, Rating } from '@fitplan/engine';
 
 /**
- * Plan, the home screen, fed by the real engine over the demo week (KL's
- * routine). Storage replaces the demo inputs in stage 2; Move/Swap sheets
- * arrive there too.
+ * Plan, the home screen. Everything shown comes from the store (the event
+ * log folded and planned); every action appends events, so it survives a
+ * restart and nothing ever changes silently.
  */
 export default function Plan() {
   const { colors } = useTheme();
-  const initial = useMemo(() => buildToday(), []);
-  const [model, setModel] = useState<TodayModel>(initial);
-  const [undoStack, setUndoStack] = useState<TodayModel[]>([]);
-  const [updateCard, setUpdateCard] = useState<readonly PlanChange[] | null>(null);
-  const [moving, setMoving] = useState<PlannedItem | null>(null);
+  const store = useStore();
+  const model: PlanView = store;
+
   const [expanded, setExpanded] = useState(false);
-  const [selected, setSelected] = useState<PlannedItem | null>(
-    () => firstActionable(initial) ?? null,
-  );
+  const [selected, setSelected] = useState<PlannedItem | null>(null);
+  const [moving, setMoving] = useState<PlannedItem | null>(null);
+  const [swapping, setSwapping] = useState<PlannedItem | null>(null);
+  const [cancelling, setCancelling] = useState<string | null>(null);
+  const [adding, setAdding] = useState(false);
+  const [userCard, setUserCard] = useState<{
+    changes: readonly PlanChange[];
+    undoIds?: readonly number[];
+  } | null>(null);
+  const [dismissedAutoVersion, setDismissedAutoVersion] = useState(0);
 
-  const sentenceCtx = useMemo(() => ({ names: model.names, shortDay }), [model]);
+  // The store replanned (on launch, or because a dispatch changed the
+  // inputs): show what changed, derived straight from the store. Never
+  // silent, and no copying through effects.
+  const autoCard: { changes: readonly PlanChange[]; undoIds?: readonly number[] } | null =
+    store.autoChangesVersion > dismissedAutoVersion && store.autoChanges.length > 0
+      ? { changes: store.autoChanges }
+      : null;
+  const updateCard = userCard ?? autoCard;
 
-  const weeks = useMemo(
-    () => calendarWeeks(model, expanded ? 6 : 2, selected),
-    [model, expanded, selected],
-  );
-  const timelineDays = useMemo(
-    () => dayRange(model.today, 14).filter((day, index) => index < 14),
-    [model],
-  );
+  function dismissCard() {
+    if (userCard) setUserCard(null);
+    else setDismissedAutoVersion(store.autoChangesVersion);
+  }
+
+  const sentenceCtx = useMemo(() => ({ names: store.names, shortDay }), [store.names]);
 
   const advice = useMemo(() => {
     const first = firstToday(model);
@@ -73,6 +92,54 @@ export default function Plan() {
       : ratingAt(model, first.exerciseId, first.day, first.slot);
     return adviceSentence(rating?.reasons ?? [], sentenceCtx);
   }, [model, sentenceCtx]);
+
+  const weeks = useMemo(
+    () => calendarWeeks(model, expanded ? 6 : 2, selected),
+    [model, expanded, selected],
+  );
+  const timelineDays = useMemo(() => dayRange(model.today, 14), [model]);
+
+  function saveMove(item: PlannedItem, day: string, slot: PlannedItem['slot'], lock: boolean) {
+    const { model: next, changes } = applyMove(model, item, { day, slot, lock });
+    const ids = store.dispatch([
+      {
+        type: 'userMoved',
+        exerciseId: item.exerciseId,
+        from: { day: item.day, slot: item.slot },
+        to: { day, slot },
+        locked: true,
+      },
+      { type: 'planSaved', plan: next.result.plan, changes, by: 'user' },
+    ]);
+    setSelected(null);
+    setMoving(null);
+    setUserCard({ changes, undoIds: ids });
+  }
+
+  function saveSwap(item: PlannedItem, toExerciseId: string) {
+    const { model: next, changes } = applySwap(model, item, toExerciseId);
+    const ids = store.dispatch([
+      {
+        type: 'userSwapped',
+        fromExerciseId: item.exerciseId,
+        toExerciseId,
+        day: item.day,
+        slot: item.slot,
+      },
+      { type: 'planSaved', plan: next.result.plan, changes, by: 'user' },
+    ]);
+    setSelected(null);
+    setSwapping(null);
+    setUserCard({ changes, undoIds: ids });
+  }
+
+  function cancelAnchor(anchorId: string) {
+    const ids = store.dispatch([{ type: 'anchorOccurrenceCancelled', anchorId }]);
+    setCancelling(null);
+    setSelected(null);
+    // The replan runs in the store; its changes arrive via launchChanges.
+    void ids;
+  }
 
   return (
     <SafeAreaView style={[styles.root, { backgroundColor: colors.ground }]} edges={['top']}>
@@ -109,13 +176,23 @@ export default function Plan() {
                     entry={entry}
                     showTime={index === 0 || entries[index - 1]?.slot !== entry.slot}
                     today={day === model.today}
-                    selected={entry.item != null && itemsEqual(entry.item, selected)}
-                    onSelect={() =>
-                      setSelected(
-                        entry.item && !itemsEqual(entry.item, selected) ? entry.item : null,
-                      )
+                    selected={
+                      entry.item
+                        ? itemsEqual(entry.item, selected)
+                        : entry.anchorId != null && entry.anchorId === cancelling
                     }
+                    onSelect={() => {
+                      if (entry.item) {
+                        setSelected(itemsEqual(entry.item, selected) ? null : entry.item);
+                        setCancelling(null);
+                      } else if (entry.anchorId) {
+                        setCancelling(cancelling === entry.anchorId ? null : entry.anchorId);
+                        setSelected(null);
+                      }
+                    }}
                     onMove={() => entry.item && setMoving(entry.item)}
+                    onSwap={() => entry.item && setSwapping(entry.item)}
+                    onCancel={() => entry.anchorId && cancelAnchor(entry.anchorId)}
                   />
                 ))
               )}
@@ -126,52 +203,108 @@ export default function Plan() {
 
       {updateCard ? (
         <PlanUpdatedCard
-          body={updateCard.map((c) => changeSentence(c, sentenceCtx)).join(' ')}
+          body={updateCard.changes.map((c) => changeSentence(c, sentenceCtx)).join(' ')}
           onUndo={() => {
-            const last = undoStack[undoStack.length - 1];
-            if (last) {
-              setModel(last);
-              setUndoStack((stack) => stack.slice(0, -1));
+            if (updateCard.undoIds) {
+              store.dispatch(
+                updateCard.undoIds.map((undoneEventId) => ({
+                  type: 'eventUndone' as const,
+                  undoneEventId,
+                })),
+              );
             }
-            setUpdateCard(null);
+            dismissCard();
           }}
-          onAccept={() => setUpdateCard(null)}
+          onAccept={dismissCard}
         />
       ) : null}
 
       {moving ? (
         <MoveSheet
           visible
-          title={model.names.get(moving.exerciseId) ?? ''}
+          title={store.names.get(moving.exerciseId) ?? ''}
           subtitle={`Now: ${moving.day === model.today ? 'today' : shortDay(moving.day)}, ${moving.slot}`}
           today={model.today}
           current={{ day: moving.day, slot: moving.slot }}
-          rateDay={(day, slot) => {
-            const exercise = model.inputs.exercises.find((e) => e.id === moving.exerciseId);
-            if (!exercise) return undefined;
-            return ratingAt({ ...model }, moving.exerciseId, day, slot);
-          }}
+          rateDay={(day, slot) => ratingAt(model, moving.exerciseId, day, slot)}
           reasonLine={(rating: Rating | undefined) =>
             rating?.reasons[0]
               ? reasonSentence(rating.reasons[0], sentenceCtx)
               : 'No planned or busy time is in the way.'
           }
           shortDay={shortDay}
-          onSave={(day, slot, lock) => {
-            const { model: next, changes } = applyMove(model, moving, { day, slot, lock });
-            setUndoStack((stack) => [...stack, model]);
-            setModel(next);
-            setSelected(null);
-            setMoving(null);
-            setUpdateCard(changes);
-          }}
+          onSave={(day, slot, lock) => saveMove(moving, day, slot, lock)}
           onClose={() => setMoving(null)}
         />
       ) : null}
 
-      <BottomBar current="plan" />
+      {swapping ? (
+        <SwapSheet
+          visible
+          title="Do something else"
+          subtitle={`Instead of ${store.names.get(swapping.exerciseId) ?? ''} on ${shortDay(swapping.day)}`}
+          candidates={swapAlternatives(
+            store.inputs.exercises.find((e) => e.id === swapping.exerciseId)!,
+            store.inputs.exercises,
+          ).map((candidate) => ({
+            id: candidate.exercise.id,
+            name: candidate.exercise.name,
+            rating: ratingAt(
+              { ...model, result: withoutItem(model, swapping) },
+              candidate.exercise.id,
+              swapping.day,
+              swapping.slot,
+            ),
+          }))}
+          reasonLine={(rating) =>
+            rating?.reasons[0] ? reasonSentence(rating.reasons[0], sentenceCtx) : ''
+          }
+          onPick={(exerciseId) => saveSwap(swapping, exerciseId)}
+          onClose={() => setSwapping(null)}
+        />
+      ) : null}
+
+      <AddSheet
+        visible={adding}
+        today={model.today}
+        exercises={store.inputs.exercises}
+        onLogDone={(exerciseId, minutes, effort) => {
+          store.dispatch([
+            {
+              type: 'sessionCompleted',
+              session: { exerciseId, day: model.today, minutes, effort },
+              source: 'logged',
+            },
+          ]);
+        }}
+        onAddBusy={(days, slots) => {
+          store.dispatch(
+            days.map((day) => ({
+              type: 'blockAdded' as const,
+              block: { id: `block-${day}-${slots.join('-')}`, day, slots },
+            })),
+          );
+        }}
+        onPickUp={(exercise) => {
+          store.dispatch([{ type: 'exerciseAdded', exercise }]);
+        }}
+        onClose={() => setAdding(false)}
+      />
+
+      <BottomBar current="plan" onAdd={() => setAdding(true)} />
     </SafeAreaView>
   );
+}
+
+function withoutItem(model: PlanView, item: PlannedItem) {
+  return {
+    ...model.result,
+    plan: {
+      items: model.result.plan.items.filter(
+        (i) => !(i.exerciseId === item.exerciseId && i.day === item.day && i.slot === item.slot),
+      ),
+    },
+  };
 }
 
 function Entry({
@@ -181,6 +314,8 @@ function Entry({
   selected,
   onSelect,
   onMove,
+  onSwap,
+  onCancel,
 }: {
   entry: DayEntry;
   showTime: boolean;
@@ -188,6 +323,8 @@ function Entry({
   selected: boolean;
   onSelect: () => void;
   onMove: () => void;
+  onSwap: () => void;
+  onCancel: () => void;
 }) {
   const slotWord = entry.slot.charAt(0).toUpperCase() + entry.slot.slice(1);
   const timeLabel = showTime ? (entry.time ?? slotWord) : undefined;
@@ -198,23 +335,20 @@ function Entry({
         title={entry.title}
         subtitle={entry.subtitle}
         selected={selected}
-        {...(entry.item ? { onPress: onSelect } : {})}
+        {...(entry.item || entry.anchorId ? { onPress: onSelect } : {})}
       />
-      {selected ? (
+      {selected && entry.item ? (
         <>
           {today ? <Button label="Start" variant="primary" /> : null}
           <View style={styles.pair}>
             <Button label="Move" style={styles.half} onPress={onMove} />
-            <Button label="Swap" style={styles.half} />
+            <Button label="Swap" style={styles.half} onPress={onSwap} />
           </View>
         </>
       ) : null}
+      {selected && entry.anchorId ? <Button label="Cancel this one" onPress={onCancel} /> : null}
     </TimelineRow>
   );
-}
-
-function firstActionable(model: ReturnType<typeof buildToday>): PlannedItem | undefined {
-  return model.result.plan.items.find((item) => item.day === model.today);
 }
 
 function itemsEqual(a: PlannedItem | null | undefined, b: PlannedItem | null | undefined): boolean {
@@ -224,7 +358,7 @@ function itemsEqual(a: PlannedItem | null | undefined, b: PlannedItem | null | u
 }
 
 function calendarWeeks(
-  model: ReturnType<typeof buildToday>,
+  model: PlanView,
   count: number,
   selected: PlannedItem | null,
 ): CalendarWeek[] {

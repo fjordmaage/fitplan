@@ -18,4 +18,7 @@ export * from './recovery';
 export * from './rate';
 export * from './schedule';
 export * from './catalogue';
+export * from './modes';
+export * from './suggest';
+export * from './observe';
 export * from './demo';

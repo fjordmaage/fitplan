@@ -1,3 +1,4 @@
+export { AddSheet } from './AddSheet';
 export { AdviceBox } from './AdviceBox';
 export { BottomBar, type TabName } from './BottomBar';
 export { Button, type ButtonVariant } from './Button';
@@ -16,6 +17,7 @@ export { RoundIconButton, ScreenTitle } from './ScreenTitle';
 export { MoveSheet } from './MoveSheet';
 export { SectionHeading } from './SectionHeading';
 export { Sheet } from './Sheet';
+export { SwapSheet } from './SwapSheet';
 export { SelectionRing } from './SelectionRing';
 export { Text } from './text';
 export { TimelineCard, type ActivityKind } from './TimelineCard';

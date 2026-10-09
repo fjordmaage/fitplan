@@ -27,6 +27,9 @@ export interface TodayModel {
   today: string;
 }
 
+/** Anything store-shaped works where a TodayModel is expected. */
+export type PlanView = Pick<TodayModel, 'inputs' | 'result' | 'names' | 'today'>;
+
 export function deviceNow(): { day: string; minutes: number } {
   const now = new Date();
   const day = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(
@@ -58,10 +61,10 @@ export function buildToday(): TodayModel {
  * card. Stage 1 keeps this in memory; stage 2 stores it.
  */
 export function applyMove(
-  model: TodayModel,
+  model: PlanView,
   item: PlannedItem,
   to: { day: string; slot: Slot; lock: boolean },
-): { model: TodayModel; changes: readonly PlanChange[] } {
+): { model: { result: PlanResult }; changes: readonly PlanChange[] } {
   const previous = model.result.plan;
   const withoutItem: Plan = {
     items: previous.items.filter(
@@ -88,14 +91,54 @@ export function applyMove(
     (c) => !(c.exerciseId === item.exerciseId && c.kind === 'moved'),
   );
   return {
-    model: { ...model, result },
+    model: { result },
     changes: [userChange, ...knockOns],
   };
 }
 
+/**
+ * Replace one planned occurrence with another exercise (the swap sheet).
+ * The replacement is pinned where the original stood; everything else
+ * replans around it.
+ */
+export function applySwap(
+  model: PlanView,
+  item: PlannedItem,
+  toExerciseId: string,
+): { model: { result: PlanResult }; changes: readonly PlanChange[] } {
+  const previous = model.result.plan;
+  const withoutItem: Plan = {
+    items: previous.items.filter(
+      (i) => !(i.exerciseId === item.exerciseId && i.day === item.day && i.slot === item.slot),
+    ),
+  };
+  const replacement: PlannedItem = {
+    exerciseId: toExerciseId,
+    day: item.day,
+    slot: item.slot,
+    order: item.order,
+    tentative: false,
+    locked: true,
+  };
+  const seeded: Plan = { items: [...withoutItem.items, replacement] };
+  const result = plan(model.inputs, seeded);
+  const swapChange: PlanChange = {
+    exerciseId: toExerciseId,
+    kind: 'added',
+    to: { day: item.day, slot: item.slot },
+    reasons: [{ code: 'USER_SWAPPED' }],
+  };
+  const knockOns = result.changes.filter(
+    (c) =>
+      !(c.exerciseId === item.exerciseId && c.kind === 'removed') &&
+      !(c.exerciseId === toExerciseId && c.kind === 'added'),
+  );
+  return { model: { result }, changes: [swapChange, ...knockOns] };
+}
+
 /** Today's first workout, flexible or fixed, as (exerciseId, day, slot). */
 export function firstToday(
-  model: TodayModel,
+  model: PlanView,
 ): { exerciseId: string; day: string; slot: Slot; item?: PlannedItem } | undefined {
   const slotOrder: Slot[] = ['morning', 'afternoon', 'evening'];
   const candidates: { exerciseId: string; day: string; slot: Slot; item?: PlannedItem }[] = [];
@@ -112,7 +155,7 @@ export function firstToday(
   return candidates[0];
 }
 
-export function ratingAt(model: TodayModel, exerciseId: string, day: string, slot: Slot) {
+export function ratingAt(model: PlanView, exerciseId: string, day: string, slot: Slot) {
   const exercise = model.inputs.exercises.find((e) => e.id === exerciseId);
   if (!exercise) return undefined;
   return rate(
@@ -123,7 +166,7 @@ export function ratingAt(model: TodayModel, exerciseId: string, day: string, slo
   );
 }
 
-export function ratingFor(model: TodayModel, item: PlannedItem) {
+export function ratingFor(model: PlanView, item: PlannedItem) {
   const exercise = model.inputs.exercises.find((e) => e.id === item.exerciseId);
   if (!exercise) return undefined;
   return rate(
@@ -137,6 +180,7 @@ export function ratingFor(model: TodayModel, item: PlannedItem) {
 export interface DayEntry {
   kind: 'fixed' | 'flexible' | 'tentative' | 'busy';
   exerciseId?: string;
+  anchorId?: string;
   title: string;
   subtitle: string;
   slot: Slot;
@@ -146,7 +190,7 @@ export interface DayEntry {
 }
 
 /** Everything happening on one day, in slot order. */
-export function entriesFor(model: TodayModel, day: string): DayEntry[] {
+export function entriesFor(model: PlanView, day: string): DayEntry[] {
   const entries: DayEntry[] = [];
   for (const anchor of model.inputs.anchors) {
     if (anchor.cancelled || anchor.day !== day) continue;
@@ -158,6 +202,7 @@ export function entriesFor(model: TodayModel, day: string): DayEntry[] {
     entries.push({
       kind: 'fixed',
       exerciseId: anchor.exerciseId,
+      anchorId: anchor.id,
       title: model.names.get(anchor.exerciseId) ?? anchor.exerciseId,
       subtitle: `Until ${eh}:${em}`,
       slot: anchor.slot,
@@ -226,7 +271,7 @@ export function shortDay(day: string): string {
   return `${weekdayShort[weekday(day)]} ${d}`;
 }
 
-export function headingFor(model: TodayModel, day: string): string {
+export function headingFor(model: PlanView, day: string): string {
   const diff = Math.round((Date.parse(day) - Date.parse(model.today)) / 86_400_000);
   if (diff === 0) return 'Today';
   if (diff === 1) return `Tomorrow · ${shortDay(day)}`;

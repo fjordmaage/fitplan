@@ -10,6 +10,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import * as SplashScreen from 'expo-splash-screen';
 
+import { StoreProvider } from '@/data/store';
 import { ThemeProvider, useTheme } from '@/theme';
 
 void SplashScreen.preventAutoHideAsync();
@@ -49,7 +50,9 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider>
-      <Navigator />
+      <StoreProvider>
+        <Navigator />
+      </StoreProvider>
     </ThemeProvider>
   );
 }

@@ -28,6 +28,12 @@ export function reasonSentence(reason: Reason, ctx: SentenceContext): string {
   switch (reason.code) {
     case 'BUSY':
       return `You're busy that ${slotWords[reason.slot]}.`;
+    case 'FULL_BREAK':
+      return "You're taking a break — nothing gets planned here.";
+    case 'ONLY_EASY':
+      return "You've asked for only easy sessions right now.";
+    case 'COMEBACK':
+      return "You're easing back in, so hard sessions wait a little.";
     case 'REGION_NOT_READY':
       return `Your ${regionWords[reason.region]} won't be recovered — ready ${ctx.shortDay(reason.readyOn)}.`;
     case 'REGION_BORDERLINE':

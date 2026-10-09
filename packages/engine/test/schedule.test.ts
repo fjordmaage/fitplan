@@ -103,6 +103,30 @@ describe('required properties (engine spec, "Required tests")', () => {
   });
 });
 
+describe('conflicting user intents', () => {
+  it('busy time laid over a locked item wins: the item moves out, never overlaps', () => {
+    const previous: Plan = {
+      items: [
+        {
+          exerciseId: 'run',
+          day: '2026-10-10',
+          slot: 'morning',
+          order: 0,
+          tentative: false,
+          locked: true,
+        },
+      ],
+    };
+    const inputs = klInputs({
+      blocks: [{ id: 'b1', day: '2026-10-10', slots: ['morning', 'afternoon', 'evening'] }],
+    });
+    const { plan: result } = planOf(inputs, previous);
+    for (const item of result.items) {
+      expect(item.day === '2026-10-10').toBe(false);
+    }
+  });
+});
+
 describe("KL's scenario week (engine spec)", () => {
   it('runs land on non-climbing days with the back routine right after', () => {
     const { plan: result } = planOf(klInputs());
