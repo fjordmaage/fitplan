@@ -104,10 +104,7 @@ export default function Body() {
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.titleRow}>
           <Text variant="screenTitle">Body</Text>
-          <ActionChip
-            label="Not feeling 100%"
-            onPress={() => router.push('/unwell' as Href)}
-          />
+          <ActionChip label="Not feeling 100%" onPress={() => router.push('/unwell' as Href)} />
         </View>
 
         <SurfaceCard style={styles.recoveryCard}>
@@ -121,12 +118,7 @@ export default function Body() {
             <MeterBar
               key={region}
               label={regionHeading(region)}
-              words={readinessWords(
-                recovery[region].ready,
-                recovery[region].readyOn,
-                ctx,
-                today,
-              )}
+              words={readinessWords(recovery[region].ready, recovery[region].readyOn, ctx, today)}
               fraction={recovery[region].readiness}
             />
           ))}

@@ -15,7 +15,14 @@ import {
 } from './params';
 import { comebackFactor, modeActiveOn } from './modes';
 import { isBefore, slotMinutes, daysBetween } from './time';
-import { isBigJump, medianSessionLoad, plannedLoad, sessionLoadOf, usualDailyLoad } from './load';
+import {
+  isBigJump,
+  medianSessionLoad,
+  medianSessionMinutes,
+  plannedLoad,
+  sessionLoadOf,
+  usualDailyLoad,
+} from './load';
 import { recoveryAt } from './recovery';
 import { projectedSessions } from './outlook';
 import type { DayString, EngineInputs, Exercise, Plan, Rating, Reason, Slot } from './types';
@@ -28,6 +35,7 @@ const precedence: Record<Reason['code'], number> = {
   ALREADY_THAT_DAY: 3,
   REGION_NOT_READY: 4,
   ONLY_EASY: 9,
+  SHORTER_SESSIONS: 9,
   BIG_JUMP: 10,
   REGION_BORDERLINE: 11,
   BACK_TO_BACK: 12,
@@ -143,6 +151,14 @@ export function rate(context: RateContext, exercise: Exercise, day: DayString, s
   if (mode && modeActiveOn(mode, day) && mode.change === 'onlyEasy') {
     const hardLine0 = median0 > 0 ? median0 * hardSessionFactor : Infinity;
     if (plannedLoad(exercise) >= hardLine0) reasons.push({ code: 'ONLY_EASY' });
+  }
+  if (mode && modeActiveOn(mode, day) && mode.change === 'shorterSessions') {
+    // "Shorter sessions": anything longer than the user's median session
+    // strains the mode.
+    const medianMinutes = medianSessionMinutes(inputs.history);
+    if (medianMinutes > 0 && exercise.typicalMinutes > medianMinutes) {
+      reasons.push({ code: 'SHORTER_SESSIONS' });
+    }
   }
   if (mode && comebackFactor(mode, day) < 1) {
     const hardLine0 = median0 > 0 ? median0 * hardSessionFactor : Infinity;

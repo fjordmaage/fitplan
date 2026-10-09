@@ -56,6 +56,8 @@ export function reasonSentence(reason: Reason, ctx: SentenceContext): string {
       return "You're taking a break — nothing gets planned here.";
     case 'ONLY_EASY':
       return "You've asked for only easy sessions right now.";
+    case 'SHORTER_SESSIONS':
+      return "You've asked for shorter sessions right now.";
     case 'COMEBACK':
       return "You're easing back in, so hard sessions wait a little.";
     case 'REGION_NOT_READY':

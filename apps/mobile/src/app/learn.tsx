@@ -46,10 +46,7 @@ export default function Learn() {
     const tomorrow = addDays(today, 1);
     const entries = result.plan.items
       .filter((item) => item.day === today || item.day === tomorrow)
-      .sort(
-        (a, b) =>
-          a.day.localeCompare(b.day) || SLOTS.indexOf(a.slot) - SLOTS.indexOf(b.slot),
-      )
+      .sort((a, b) => a.day.localeCompare(b.day) || SLOTS.indexOf(a.slot) - SLOTS.indexOf(b.slot))
       .map((item) => ({
         key: `${item.exerciseId}:${item.day}:${item.slot}`,
         title: `${names.get(item.exerciseId) ?? item.exerciseId} ${
@@ -107,8 +104,7 @@ export default function Learn() {
             {whyEntries.length === 0 ? (
               <View style={styles.entry}>
                 <Text variant="advice" tone="muted">
-                  The next days are open — add something and the app explains where it puts
-                  it.
+                  The next days are open — add something and the app explains where it puts it.
                 </Text>
               </View>
             ) : (

@@ -120,10 +120,19 @@ export function isBigJump(
 
 /** Median completed session load, for the "hard session" line. */
 export function medianSessionLoad(history: readonly CompletedSession[]): number {
-  if (history.length === 0) return 0;
-  const loads = history.map(sessionLoadOf).sort((a, b) => a - b);
-  const mid = Math.floor(loads.length / 2);
-  const low = loads[mid - 1];
-  const high = loads[mid];
-  return loads.length % 2 === 1 ? (high ?? 0) : ((low ?? 0) + (high ?? 0)) / 2;
+  return median(history.map(sessionLoadOf));
+}
+
+/** Median completed session length, for the "shorter sessions" mode. */
+export function medianSessionMinutes(history: readonly CompletedSession[]): number {
+  return median(history.map((s) => s.minutes));
+}
+
+function median(values: number[]): number {
+  if (values.length === 0) return 0;
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  const low = sorted[mid - 1];
+  const high = sorted[mid];
+  return sorted.length % 2 === 1 ? (high ?? 0) : ((low ?? 0) + (high ?? 0)) / 2;
 }

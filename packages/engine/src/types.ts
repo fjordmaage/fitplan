@@ -143,6 +143,7 @@ export type Reason =
   | { code: 'BUSY'; slot: Slot }
   | { code: 'FULL_BREAK' }
   | { code: 'ONLY_EASY' }
+  | { code: 'SHORTER_SESSIONS' }
   | { code: 'COMEBACK' }
   | { code: 'REGION_NOT_READY'; region: BodyRegion; readyOn: DayString }
   | { code: 'REGION_BORDERLINE'; region: BodyRegion }
