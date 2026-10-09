@@ -116,6 +116,9 @@ export function palette(theme: ThemeName, accent?: string): Palette {
 export const metrics = {
   screen: { width: 390, height: 844 },
 
+  /** Every control at least this tall (design principles). */
+  minTapTarget: 44,
+
   /** Header block above the calendar: padding 20/16/0, gap 14. */
   header: {
     paddingTop: 20,

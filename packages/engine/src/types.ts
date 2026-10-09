@@ -115,6 +115,8 @@ export interface Instant {
   minutes: number;
 }
 
+import type { ActiveMode } from './modes';
+
 export interface EngineInputs {
   now: Instant;
   profile: Profile;
@@ -126,11 +128,16 @@ export interface EngineInputs {
   learned?: LearnedParams;
   /** Items the user locked in place (ids match plan items by exercise+day+slot). */
   frozenWindowOn?: boolean;
+  /** "Not feeling 100%": a temporary mode over the plan. */
+  mode?: ActiveMode;
 }
 
 /** Reason codes. The UI turns the top one into a sentence; never free text. */
 export type Reason =
   | { code: 'BUSY'; slot: Slot }
+  | { code: 'FULL_BREAK' }
+  | { code: 'ONLY_EASY' }
+  | { code: 'COMEBACK' }
   | { code: 'REGION_NOT_READY'; region: BodyRegion; readyOn: DayString }
   | { code: 'REGION_BORDERLINE'; region: BodyRegion }
   | { code: 'ALREADY_THAT_DAY'; exerciseId: string }

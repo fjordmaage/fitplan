@@ -7,6 +7,7 @@
  */
 
 import { heavyRegionShare, readiness as readinessParams, hardSessionFactor } from './params';
+import { comebackFactor, modeActiveOn } from './modes';
 import { isBefore, slotMinutes, daysBetween } from './time';
 import { isBigJump, medianSessionLoad, plannedLoad } from './load';
 import { recoveryAt } from './recovery';
@@ -15,15 +16,18 @@ import type { DayString, EngineInputs, Exercise, Plan, Rating, Reason, Slot } fr
 /** Fixed precedence: lower number wins the first spot. */
 const precedence: Record<Reason['code'], number> = {
   PAST_DAY: 0,
-  BUSY: 1,
-  ALREADY_THAT_DAY: 2,
-  REGION_NOT_READY: 3,
+  FULL_BREAK: 1,
+  BUSY: 2,
+  ALREADY_THAT_DAY: 3,
+  REGION_NOT_READY: 4,
+  ONLY_EASY: 9,
   BIG_JUMP: 10,
   REGION_BORDERLINE: 11,
   BACK_TO_BACK: 12,
   SAME_DAY_HARD: 13,
   DAY_FULL: 14,
   ABOVE_USUAL: 15,
+  COMEBACK: 16,
   PAIRED_AFTER: 20,
   REGIONS_READY: 21,
   GOOD_SPACING: 22,
@@ -33,6 +37,7 @@ const precedence: Record<Reason['code'], number> = {
 
 const hardCodes: ReadonlySet<Reason['code']> = new Set([
   'PAST_DAY',
+  'FULL_BREAK',
   'BUSY',
   'ALREADY_THAT_DAY',
   'REGION_NOT_READY',
@@ -71,6 +76,16 @@ export function rate(context: RateContext, exercise: Exercise, day: DayString, s
 
   if (isBefore(day, inputs.now.day)) reasons.push({ code: 'PAST_DAY' });
 
+  // "Not feeling 100%" (docs/engine-sources.md, item 9). A full break (or
+  // keep-fixed) blocks flexible placements; only-easy strains hard sessions;
+  // the comeback window after an illness keeps things gentle for a while.
+  const mode = inputs.mode;
+  if (mode && modeActiveOn(mode, day)) {
+    if (mode.change === 'fullBreak' || mode.change === 'keepFixedDropRest') {
+      reasons.push({ code: 'FULL_BREAK' });
+    }
+  }
+
   // Hard: never place in busy time.
   const blocked = inputs.blocks.some((b) => b.day === day && b.slots.includes(slot));
   if (blocked) reasons.push({ code: 'BUSY', slot });
@@ -104,6 +119,19 @@ export function rate(context: RateContext, exercise: Exercise, day: DayString, s
     } else if (state.readiness < readinessParams.ready) {
       anyBorderline = true;
       reasons.push({ code: 'REGION_BORDERLINE', region: region as never });
+    }
+  }
+
+  // Mode soft rules.
+  const median0 = medianSessionLoad(inputs.history);
+  if (mode && modeActiveOn(mode, day) && mode.change === 'onlyEasy') {
+    const hardLine0 = median0 > 0 ? median0 * hardSessionFactor : Infinity;
+    if (plannedLoad(exercise) >= hardLine0) reasons.push({ code: 'ONLY_EASY' });
+  }
+  if (mode && comebackFactor(mode, day) < 1) {
+    const hardLine0 = median0 > 0 ? median0 * hardSessionFactor : Infinity;
+    if (plannedLoad(exercise) >= hardLine0 * comebackFactor(mode, day)) {
+      reasons.push({ code: 'COMEBACK' });
     }
   }
 
@@ -152,7 +180,7 @@ export function rate(context: RateContext, exercise: Exercise, day: DayString, s
 
   const level: Rating['level'] = reasons.some((r) => hardCodes.has(r.code))
     ? 'avoid'
-    : reasons.some((r) => precedence[r.code] >= 10 && precedence[r.code] < 20)
+    : reasons.some((r) => precedence[r.code] >= 9 && precedence[r.code] < 20)
       ? 'ok'
       : 'good';
 

@@ -1,0 +1,23 @@
+{
+  "name": "@fitplan/store",
+  "version": "0.0.0",
+  "private": true,
+  "license": "GPL-3.0-or-later",
+  "description": "The append-only event log and its fold to app state. Pure TypeScript; persistence adapters live in the app.",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@fitplan/engine": "*"
+  },
+  "devDependencies": {
+    "vitest": "^5.0.3"
+  }
+}

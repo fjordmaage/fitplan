@@ -138,6 +138,36 @@ monotony/strain. Decision after reading it: the parts the engine needs
 (session load, rolling sums, EWMA) are a few lines each; reimplemented with
 tests rather than depended on (gap 4 closed).
 
+## 9. Coming back after illness or a break — supported in shape
+
+Graduated return-to-activity guidance after acute illness: no training while
+systemic symptoms (fever, aching muscles) persist, then a stepwise return at
+roughly half volume, taking about one day per day ill before full training.
+The engine's comeback window applies this shape after any "Not feeling 100%"
+mode ends — illness restarts at 50% of the usual, other causes at 70%, scaling
+to full over a window derived from the time off and the user's chosen pace.
+The engine schedules; it never diagnoses, and the app always shows the
+see-a-doctor line.
+
+- Return to sport after acute respiratory illness (international consensus
+  work): <https://pmc.ncbi.nlm.nih.gov/articles/PMC7194966>
+- Graduated return and the limits of the old "neck check":
+  <https://www.sciencedirect.com/science/article/pii/S0949328X23002326>
+
+## 10. How often to suggest an exercise — supported
+
+WHO 2020 activity guidelines: 150-300 minutes of moderate aerobic activity a
+week (or 75-150 vigorous), plus muscle-strengthening work for the major groups
+at least twice a week.
+
+- WHO 2020 guidelines on physical activity and sedentary behaviour:
+  <https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7719906/>
+
+Engine: "let the app decide how often" suggests a frequency that fills the gap
+between the user's current four-week habit and the guideline, bounded to 1-4
+per week; strength-leaning exercises are nudged toward the twice-a-week floor.
+The suggestion is a starting point the user edits, not a prescription.
+
 ## What this means for the model, in one place
 
 | Parameter | Value | Basis |

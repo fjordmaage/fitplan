@@ -17,6 +17,7 @@ import {
 } from './params';
 import { addDays, dayRange, daysBetween, slotMinutes, weekday } from './time';
 import { medianSessionLoad, plannedLoad } from './load';
+import { comebackFactor, modeActiveOn } from './modes';
 import { recoveryAt } from './recovery';
 import {
   SLOTS,
@@ -48,8 +49,12 @@ export function plan(inputs: EngineInputs, previousPlan?: Plan): PlanResult {
   // What is immovable: anchors (not cancelled) and locked or frozen items.
   const anchors = inputs.anchors.filter((a) => !a.cancelled && daysBetween(today, a.day) >= 0);
   const frozenLimit = inputs.frozenWindowOn ? addDays(today, 2) : null;
+  const busySlots = new Set(inputs.blocks.flatMap((b) => b.slots.map((s) => `${b.day}|${s}`)));
   const keptItems: PlannedItem[] = previous.items.filter((item) => {
     if (daysBetween(today, item.day) < 0) return false;
+    // A block laid over a kept item is the newer user intent: the item loses
+    // its pin and replans elsewhere ("never overlap a block" is absolute).
+    if (busySlots.has(`${item.day}|${item.slot}`)) return false;
     if (item.locked) return true;
     if (frozenLimit && daysBetween(item.day, frozenLimit) > 0) return true;
     return false;
@@ -109,6 +114,17 @@ export function plan(inputs: EngineInputs, previousPlan?: Plan): PlanResult {
     // Hard rules.
     if (busy.has(`${day}|${slot}`)) return null;
     if (dayHas.has(`${exercise.id}|${day}`)) return null;
+    const mode = inputs.mode;
+    if (mode && modeActiveOn(mode, day)) {
+      if (mode.change === 'fullBreak' || mode.change === 'keepFixedDropRest') return null;
+      if (
+        mode.change === 'onlyEasy' &&
+        median > 0 &&
+        plannedLoad(exercise) >= median * hardSessionFactor
+      ) {
+        return null;
+      }
+    }
 
     let total = 0;
     const at = { day, minutes: slotMinutes[slot] };
@@ -157,6 +173,12 @@ export function plan(inputs: EngineInputs, previousPlan?: Plan): PlanResult {
       const closest = Math.min(...prior.map((p) => Math.abs(daysBetween(p.day, day))));
       total -=
         weights.stability * stabilityWeight(daysBetween(today, day)) * Math.min(1, closest / 7);
+    }
+
+    // The comeback window after time off keeps early days light.
+    const comeback = comebackFactor(inputs.mode, day);
+    if (comeback < 1 && median > 0 && plannedLoad(exercise) >= median * comeback) {
+      total -= weights.sequencing * (1 - comeback) * 2;
     }
 
     // Light pressure towards earlier placement so frequency is met.
